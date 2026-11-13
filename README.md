@@ -1,36 +1,88 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# ¿Qué cocino hoy? — Recetas para resolver la comida
 
-## Getting Started
+App web de cocina práctica para principiantes, gente sin tiempo o indecisa:
+decís qué tenés en la heladera y qué restricciones alimentarias respetás,
+y te muestra qué podés cocinar ya, con cronómetros integrados por paso.
 
-First, run the development server:
+## Stack
+
+- **Next.js 16** (App Router, TypeScript, Tailwind CSS 4, Cache Components)
+- **PostgreSQL en Supabase** (RLS: lectura pública, escritura bloqueada)
+- **Sin login**: preferencias y favoritos en `localStorage`
+- **Sin IA en esta fase**: recetas cargadas manualmente en la base
+
+## Puesta en marcha
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Conectar Supabase (5 minutos)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. Creá un proyecto gratis en [supabase.com](https://supabase.com).
+2. En el **SQL Editor** del dashboard, ejecutá en orden:
+   1. `supabase/migrations/0001_init.sql` — tablas, índices y RLS.
+   2. `supabase/seed.sql` — 24 ingredientes y 9 recetas de ejemplo.
+3. Copiá `.env.local.example` a `.env.local` y completá:
+   - `NEXT_PUBLIC_SUPABASE_URL` (Project Settings → API → URL)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API → anon public)
+4. Reiniciá `npm run dev`.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Mientras no esté configurado, la app muestra un aviso claro en vez de romperse.
 
-## Learn More
+### Agregar recetas a mano
 
-To learn more about Next.js, take a look at the following resources:
+Desde el dashboard de Supabase (Table Editor) o con SQL. Recordá:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- `recetas.macros_generales` son estimaciones **por porción**.
+- `recetas.pasos` es JSONB: `[{"orden":1,"texto":"...","tiempo_segundos":600}]`
+  (`tiempo_segundos` no nulo habilita el cronómetro de ese paso).
+- `receta_ingredientes.cantidad_base` corresponde a `recetas.porciones_base`.
+- Los ingredientes con `es_basico = true` (sal, agua, aceite, pimienta) se
+  asumen siempre disponibles y no cuentan para el matching.
+- Los alérgenos de `ingredientes.alergenos` son la red de seguridad: si un
+  ingrediente los contiene, la receta se descarta aunque su `etiquetas_dieta`
+  diga lo contrario.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## Arquitectura
 
-## Deploy on Vercel
+```
+src/
+├── app/
+│   ├── page.tsx              # Pantalla 1: Inicio / Buscador
+│   ├── resultados/page.tsx   # Pantalla 2: Resultados (server + searchParams)
+│   ├── receta/[id]/page.tsx  # Pantalla 3: Modo Cocina
+│   └── api/buscar/route.ts   # Motor como endpoint JSON (app móvil futura)
+├── components/               # UI modular (buscador, resultados, receta, timers)
+├── lib/
+│   ├── motor-busqueda.ts     # Reglas de negocio (pura, testeable, sin I/O)
+│   ├── porciones.ts          # Escalado de cantidades y macros
+│   ├── preferencias.ts       # localStorage validado (sin login)
+│   ├── filtros.ts            # Validación de query params
+│   ├── datos.ts              # Supabase con `use cache` (caché servidor/CDN)
+│   └── supabase.ts           # Cliente de solo lectura
+└── types/                    # Tipado estricto espejando el esquema SQL
+supabase/
+├── migrations/0001_init.sql  # Tablas + índices GIN + RLS solo lectura
+└── seed.sql                  # Contenido inicial
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Reglas del motor de búsqueda
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Filtro estricto de seguridad**: descarta recetas que no cumplan las
+   restricciones (por etiqueta **y** por alérgenos en ingredientes) o superen
+   el tiempo máximo.
+2. **Coincidencia**: solo cuentan ingredientes obligatorios (se ignoran
+   `es_basico` y `es_opcional`).
+3. **Ranking**: Nivel 1 "Tenés todo" (desempata menor tiempo → menor
+   dificultad) → Nivel 2 "Te falta 1" (con reemplazo sugerido) → Nivel 3
+   "Te faltan 2" (solo si los niveles 1 y 2 devuelven menos de 3 resultados).
+
+### Escalado futuro (previsto en el diseño)
+
+- **IA**: el motor es una función pura; una capa generativa puede producir
+  `RecetaConIngredientes` y entrar al mismo pipeline.
+- **App móvil**: consume `/api/buscar` y `/api/receta` sin duplicar lógica.
+- **Escritura**: agregar políticas RLS de INSERT con rol autorizado; hoy la
+  anon key solo lee.
