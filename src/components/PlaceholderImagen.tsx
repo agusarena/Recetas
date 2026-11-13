@@ -1,10 +1,17 @@
 /**
- * Placeholder de imagen: usa la foto real si existe, y si no, un degradado
- * con un emoji de comida (elegido de forma estable por hash del título).
+ * Placeholder de imagen: usa la foto real si existe, y si no, un tono neutro
+ * con la inicial del título en serif (elegido de forma estable por hash).
  * Mantener <img> en vez de next/image: aún no hay dominio de Storage
  * configurado en next.config.
  */
-const EMOJIS = ["🍳", "🥘", "🍲", "🥗", "🍜", "🍕", "🥙", "🍛"];
+
+/** Pares de tonos apagados (fondo / tinta) con aire de recetario. */
+const TONOS = [
+  { fondo: "#e8f0ec", tinta: "#1e5c45" }, // verde albahaca tenue
+  { fondo: "#f9ede6", tinta: "#bf4318" }, // tomate tenue
+  { fondo: "#f7f5f0", tinta: "#55524b" }, // crema y gris cálido
+  { fondo: "#ede9e1", tinta: "#75716a" },
+];
 
 export function PlaceholderImagen({
   titulo,
@@ -26,16 +33,22 @@ export function PlaceholderImagen({
       />
     );
   }
-  const emoji = EMOJIS[hashCode(titulo) % EMOJIS.length];
+  const tono = TONOS[hashCode(titulo) % TONOS.length];
   return (
     <div
       role="img"
       aria-label={titulo}
-      className={`flex items-center justify-center bg-gradient-to-br from-amber-200 via-orange-200 to-rose-200 ${className}`}
+      style={{ background: tono.fondo, color: tono.tinta }}
+      className={`flex items-center justify-center ${className}`}
     >
-      <span className="text-4xl opacity-80">{emoji}</span>
+      <span className="font-display text-4xl leading-none">{inicial(titulo)}</span>
     </div>
   );
+}
+
+function inicial(titulo: string): string {
+  const letra = titulo.trim().charAt(0);
+  return letra ? letra.toUpperCase() : "?";
 }
 
 function hashCode(texto: string): number {

@@ -32,10 +32,10 @@ function Esqueleto() {
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
       <div className="animate-pulse space-y-4">
-        <div className="h-8 w-1/2 rounded bg-stone-200" />
-        <div className="h-14 rounded-xl bg-stone-200" />
-        <div className="h-48 rounded-xl bg-stone-200" />
-        <div className="h-64 rounded-xl bg-stone-200" />
+        <div className="h-8 w-1/2 rounded bg-crema" />
+        <div className="h-14 rounded-xl bg-crema" />
+        <div className="h-48 rounded-xl bg-crema" />
+        <div className="h-64 rounded-xl bg-crema" />
       </div>
     </main>
   );
@@ -61,7 +61,7 @@ async function VistaReceta({
     console.error("[receta]", estado.detalle);
     return (
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-        <p className="rounded-xl border border-stone-200 bg-white p-6 text-stone-700">
+        <p className="border-t border-linea pt-6 text-tinta-suave">
           No pudimos cargar la receta. Revisá tu conexión e intentá de nuevo.
         </p>
       </main>

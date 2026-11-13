@@ -5,6 +5,14 @@
  * Las consultas de catálogo (ingredientes/recetas) cambian poco, así que
  * se reutilizan entre pedidos y quedan aptas para prerender.
  *
+ * Convenciones (auditoría de best-practices):
+ * · Columnas SIEMPRE explícitas en el select: `*` en el join arrastra el
+ *   jsonb `pasos` de la receta repetido en cada fila de ingrediente, y
+ *   metadatos (created_at) que la app no usa.
+ * · Los IDs que llegan de la URL se validan antes de ir a Postgres:
+ *   un uuid malformado sería un error de sintaxis SQL (página de error)
+ *   en vez de un "no encontrada" limpio.
+ *
  * IMPORTANTE: las funciones `use cache` NUNCA lanzan. Next 16 no permite
  * capturar errores de una función cacheada en el componente; devuelven un
  * `Estado<T>` tipado que la UI interpreta.
@@ -34,6 +42,45 @@ export type Estado<T> =
 function errorEstado(detalle: string): Estado<never> {
   return { ok: false, motivo: "error", detalle };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Proyecciones de columnas (explícitas, sin `*`)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Columnas de ingredientes que consume la app (sin created_at). */
+const COLS_INGREDIENTE = "id, nombre, categoria, es_basico, alergenos";
+
+/** Columnas de receta que consume la app (sin created_at). */
+const COLS_RECETA =
+  "id, titulo, descripcion_corta, tiempo_minutos, dificultad, porciones_base, pasos, tip_principiante, etiquetas_dieta, macros_generales, imagen_url";
+
+/**
+ * Fila de la relación, con ingrediente y receta resueltos en un solo viaje.
+ * Es un template literal (no un join): el tipo literal es lo que permite
+ * a supabase-js inferir la forma de las filas en el cliente.
+ */
+const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, ingrediente:ingredientes(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
+
+/** Un uuid v4-ish: suficiente para descartar basura de URL antes de SQL. */
+const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Forma de una fila del join receta_ingredientes → ingrediente/receta.
+ * Se declara acá y se impone con `.returns()`: la inferencia genérica de
+ * supabase-js no distingue relación 1-a-1 de 1-a-N en este join, y los
+ * normalizadores ya validan cada campo por su cuenta.
+ */
+type FilaRecetaIngrediente = {
+  receta_id: string;
+  ingrediente_id: string;
+  cantidad_base: number;
+  unidad: string;
+  texto_principiante: string | null;
+  es_opcional: boolean;
+  reemplazo_sugerido: string | null;
+  ingrediente: Record<string, unknown> | null;
+  receta: Record<string, unknown> | null;
+};
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Validación / normalización de filas crudas
@@ -124,7 +171,7 @@ function normalizarRecetaIngrediente(fila: any): RecetaIngredienteConDetalle {
 /**
  * Catálogo completo de recetas con sus ingredientes resueltos.
  * Es el insumo del motor de búsqueda: con cientos de recetas sigue siendo
- * una sola consulta cacheada.
+ * una sola consulta cacheada (sin N+1).
  */
 export async function obtenerCatalogo(): Promise<Estado<RecetaConIngredientes[]>> {
   "use cache";
@@ -135,7 +182,8 @@ export async function obtenerCatalogo(): Promise<Estado<RecetaConIngredientes[]>
 
   const { data, error } = await supabase
     .from("receta_ingredientes")
-    .select("*, ingrediente:ingredientes(*), receta:recetas(*)");
+    .select(SELECCION_RECETA_INGREDIENTE)
+    .returns<FilaRecetaIngrediente[]>();
   if (error) return errorEstado(error.message);
 
   const recetas = new Map<string, RecetaConIngredientes>();
@@ -158,7 +206,10 @@ export async function obtenerIngredientes(): Promise<Estado<Ingrediente[]>> {
   const supabase = crearClienteSupabase();
   if (!supabase) return { ok: false, motivo: "supabase_no_configurado" };
 
-  const { data, error } = await supabase.from("ingredientes").select("*").order("nombre");
+  const { data, error } = await supabase
+    .from("ingredientes")
+    .select(COLS_INGREDIENTE)
+    .order("nombre");
   if (error) return errorEstado(error.message);
 
   return { ok: true, datos: (data ?? []).map(normalizarIngrediente) };
@@ -169,18 +220,25 @@ function filaConIngrediente(fila: unknown): boolean {
   return Boolean((fila as { ingrediente?: { id?: unknown } }).ingrediente?.id);
 }
 
-/** Una receta por ID, para el Modo Cocina. */
+/**
+ * Una receta por ID, para el Modo Cocina. IDs con formato inválido se
+ * resuelven acá (datos: null → la UI muestra 404) en vez de llegar a
+ * Postgres y provocar un error de sintaxis uuid.
+ */
 export async function obtenerReceta(id: string): Promise<Estado<RecetaConIngredientes | null>> {
   "use cache";
   cacheLife("hours");
+
+  if (!RE_UUID.test(id)) return { ok: true, datos: null };
 
   const supabase = crearClienteSupabase();
   if (!supabase) return { ok: false, motivo: "supabase_no_configurado" };
 
   const { data, error } = await supabase
     .from("receta_ingredientes")
-    .select("*, ingrediente:ingredientes(*), receta:recetas(*)")
-    .eq("receta_id", id);
+    .select(SELECCION_RECETA_INGREDIENTE)
+    .eq("receta_id", id)
+    .returns<FilaRecetaIngrediente[]>();
   if (error) return errorEstado(error.message);
   if (!data || data.length === 0) return { ok: true, datos: null };
 

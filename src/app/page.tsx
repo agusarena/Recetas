@@ -16,11 +16,13 @@ export default function Page() {
 async function PantallaInicio() {
   if (!supabaseConfigurado()) {
     return (
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-        <h1 className="mb-6 text-3xl font-extrabold tracking-tight text-stone-900">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-tinta sm:text-4xl">
           ¿Qué cocino hoy?
         </h1>
-        <AvisoConfiguracion />
+        <div className="mt-6">
+          <AvisoConfiguracion />
+        </div>
       </main>
     );
   }
@@ -29,11 +31,11 @@ async function PantallaInicio() {
   if (!estado.ok) {
     console.error("[inicio]", estado.detalle);
     return (
-      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
-        <h1 className="mb-6 text-3xl font-extrabold tracking-tight text-stone-900">
+      <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10">
+        <h1 className="font-display text-3xl font-semibold tracking-tight text-tinta sm:text-4xl">
           ¿Qué cocino hoy?
         </h1>
-        <p className="rounded-xl border border-stone-200 bg-white p-6 text-stone-700">
+        <p className="mt-6 border-t border-linea pt-6 text-tinta-suave">
           No pudimos cargar el catálogo de ingredientes. Revisá tu conexión e
           intentá de nuevo.
         </p>
@@ -42,14 +44,14 @@ async function PantallaInicio() {
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-8">
+    <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-16 pt-10 sm:pt-14">
       <header className="mb-8">
-        <h1 className="text-3xl font-extrabold tracking-tight text-stone-900 sm:text-4xl">
+        <h1 className="font-display text-4xl font-semibold leading-tight tracking-tight text-tinta sm:text-5xl">
           ¿Qué cocino hoy?
         </h1>
-        <p className="mt-2 text-stone-600">
-          Decinos qué tenés y qué no podés comer: te mostramos recetas simples
-          para resolver la comida ya.
+        <p className="mt-3 max-w-xl text-lg leading-relaxed text-tinta-suave">
+          Decinos qué tenés en la heladera y qué no podés comer: te mostramos
+          recetas simples para resolver la comida ya.
         </p>
       </header>
       <Buscador ingredientes={estado.datos} />

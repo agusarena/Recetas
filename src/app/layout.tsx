@@ -1,16 +1,19 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Fraunces, Instrument_Sans } from "next/font/google";
 import { TimerProvider } from "@/components/timers/TimerProvider";
 import { BarraTimers } from "@/components/timers/BarraTimers";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+/** Títulos y números destacados: serif editorial con carácter propio. */
+const fraunces = Fraunces({
+  variable: "--font-titulos",
   subsets: ["latin"],
+  axes: ["opsz"],
 });
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+/** Texto e interfaz: grotesca limpia, sin parecer la default de ningún stack. */
+const instrumentSans = Instrument_Sans({
+  variable: "--font-texto",
   subsets: ["latin"],
 });
 
@@ -27,7 +30,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${instrumentSans.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <TimerProvider>

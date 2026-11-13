@@ -1,7 +1,7 @@
 "use client";
-
 /** Botón de favorito persistido en localStorage (sin login). */
 import { usePreferencias } from "@/lib/use-preferencias";
+import { IconoCorazon } from "@/components/iconos";
 
 export function BotonFavorito({ recetaId }: { recetaId: string }) {
   const { preferencias, toggleFavorito } = usePreferencias();
@@ -13,11 +13,11 @@ export function BotonFavorito({ recetaId }: { recetaId: string }) {
       aria-pressed={esFavorito}
       aria-label={esFavorito ? "Quitar de favoritos" : "Guardar en favoritos"}
       onClick={() => toggleFavorito(recetaId)}
-      className={`rounded-full p-2 text-lg leading-none transition-transform hover:scale-110 ${
-        esFavorito ? "text-rose-500" : "text-stone-400 hover:text-rose-400"
+      className={`rounded-md p-1.5 transition-colors ${
+        esFavorito ? "text-tomate" : "text-humo hover:text-tomate"
       }`}
     >
-      {esFavorito ? "♥" : "♡"}
+      <IconoCorazon relleno={esFavorito} className="h-5 w-5" />
     </button>
   );
 }
