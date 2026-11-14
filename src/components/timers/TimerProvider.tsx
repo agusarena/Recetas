@@ -5,11 +5,12 @@
  *
  * - Múltiples timers simultáneos (ej. papas hirviendo + huevo duro).
  * - Tick central con un único interval mientras haya timers corriendo.
+ * - Recalcula desde un deadline (`termina_en`), no restando segundos: así no
+ *   se atrasa cuando la pestaña queda en segundo plano.
+ * - Persiste en localStorage: recargar la página no pierde la cuenta.
+ * - Mantiene la pantalla despierta (Screen Wake Lock) mientras cocinás.
  * - Al terminar: alerta sonora (Web Audio) y vibración (si el dispositivo
- *   lo soporta). El permiso del navegador no se consume hasta que suena.
- *
- * Vive en el layout raíz para que la barra flotante sobreviva a la
- * navegación entre pantallas.
+ *   lo soporta). No se dispara una alarma retroactiva al recargar.
  */
 import {
   createContext,
@@ -19,8 +20,20 @@ import {
   useMemo,
   useRef,
   useState,
+  useSyncExternalStore,
 } from "react";
 import type { Timer } from "@/types";
+import {
+  actualizarTimers,
+  avanzarTimer,
+  crearTimer,
+  obtenerTimers,
+  obtenerTimersServidor,
+  pausarTimer,
+  reanudarTimer,
+  suscribirseTimers,
+  timersTerminadosAlCargar,
+} from "@/lib/timers";
 
 interface TimersApi {
   timers: Timer[];
@@ -70,67 +83,119 @@ function vibrar(): void {
   }
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Screen Wake Lock (tipado mínimo: no todos los lib.dom lo incluyen)
+// ─────────────────────────────────────────────────────────────────────────────
+
+type SentinelDespertar = {
+  release: () => Promise<void>;
+  addEventListener?: (tipo: "release", callback: () => void) => void;
+};
+
+type NavigatorConWakeLock = Navigator & {
+  wakeLock?: { request: (tipo: "screen") => Promise<SentinelDespertar> };
+};
+
 export function TimerProvider({ children }: { children: React.ReactNode }) {
-  const [timers, setTimers] = useState<Timer[]>([]);
-  const alertados = useRef(new Set<string>());
+  const timers = useSyncExternalStore(
+    suscribirseTimers,
+    obtenerTimers,
+    obtenerTimersServidor,
+  );
+
+  // Los que ya estaban terminados al cargar se consideran avisados: recargar
+  // la página no debe disparar una alarma retroactiva.
+  const [alertados] = useState<Set<string>>(() => {
+    obtenerTimers();
+    return new Set(timersTerminadosAlCargar());
+  });
+  const wakeLock = useRef<SentinelDespertar | null>(null);
 
   const iniciar = useCallback((etiqueta: string, segundos: number) => {
-    setTimers((prev) => [
-      ...prev.filter((t) => t.estado !== "terminado"),
-      {
-        id: crypto.randomUUID(),
-        etiqueta,
-        duracion_segundos: Math.max(1, Math.round(segundos)),
-        restante_segundos: Math.max(1, Math.round(segundos)),
-        estado: "corriendo",
-      },
-    ]);
+    actualizarTimers([...obtenerTimers(), crearTimer(etiqueta, segundos)]);
   }, []);
 
   const pausar = useCallback((id: string) => {
-    setTimers((prev) =>
-      prev.map((t) => (t.id === id && t.estado === "corriendo" ? { ...t, estado: "pausado" } : t)),
+    const ahora = Date.now();
+    actualizarTimers(
+      obtenerTimers().map((t) => (t.id === id ? pausarTimer(t, ahora) : t)),
     );
   }, []);
 
   const reanudar = useCallback((id: string) => {
-    setTimers((prev) =>
-      prev.map((t) => (t.id === id && t.estado === "pausado" ? { ...t, estado: "corriendo" } : t)),
+    const ahora = Date.now();
+    actualizarTimers(
+      obtenerTimers().map((t) => (t.id === id ? reanudarTimer(t, ahora) : t)),
     );
   }, []);
 
   const detener = useCallback((id: string) => {
-    setTimers((prev) => prev.filter((t) => t.id !== id));
-  }, []);
+    alertados.delete(id);
+    actualizarTimers(obtenerTimers().filter((t) => t.id !== id));
+  }, [alertados]);
 
   // Tick central: solo corre mientras haya timers activos.
   const hayActivos = timers.some((t) => t.estado === "corriendo");
   useEffect(() => {
     if (!hayActivos) return;
     const intervalo = setInterval(() => {
-      setTimers((prev) =>
-        prev.map((t) => {
-          if (t.estado !== "corriendo") return t;
-          const restante = t.restante_segundos - 1;
-          return restante <= 0
-            ? { ...t, restante_segundos: 0, estado: "terminado" }
-            : { ...t, restante_segundos: restante };
-        }),
-      );
-    }, 1000);
+      const ahora = Date.now();
+      const actuales = obtenerTimers();
+      const siguientes = actuales.map((t) => avanzarTimer(t, ahora));
+      if (siguientes.some((t, i) => t !== actuales[i])) actualizarTimers(siguientes);
+    }, 500);
     return () => clearInterval(intervalo);
   }, [hayActivos]);
 
-  // Alerta al terminar (fuera del updater de estado, para no ser impuro).
+  // Alerta al terminar. La mutación del Set no re-renderiza: es solo control
+  // de efecto, igual que la barra de timers.
   useEffect(() => {
     for (const t of timers) {
-      if (t.estado === "terminado" && !alertados.current.has(t.id)) {
-        alertados.current.add(t.id);
+      if (t.estado === "terminado" && !alertados.has(t.id)) {
+        alertados.add(t.id);
         sonarAlerta();
         vibrar();
       }
     }
-  }, [timers]);
+  }, [timers, alertados]);
+
+  // Mantiene la pantalla encendida mientras hay timers corriendo.
+  useEffect(() => {
+    let cancelado = false;
+    const pedir = async () => {
+      if (!hayActivos || document.visibilityState !== "visible" || wakeLock.current) return;
+      const nav = navigator as NavigatorConWakeLock;
+      if (!nav.wakeLock) return;
+
+      try {
+        const sentinel = await nav.wakeLock.request("screen");
+        if (cancelado) {
+          await sentinel.release();
+          return;
+        }
+        wakeLock.current = sentinel;
+        sentinel.addEventListener?.("release", () => {
+          if (wakeLock.current === sentinel) wakeLock.current = null;
+        });
+      } catch {
+        // Navegador sin soporte, sin HTTPS o permiso denegado.
+      }
+    };
+
+    void pedir();
+    const alCambiarVisibilidad = () => {
+      if (document.visibilityState === "visible") void pedir();
+    };
+    document.addEventListener("visibilitychange", alCambiarVisibilidad);
+
+    return () => {
+      cancelado = true;
+      document.removeEventListener("visibilitychange", alCambiarVisibilidad);
+      const sentinel = wakeLock.current;
+      wakeLock.current = null;
+      void sentinel?.release().catch(() => undefined);
+    };
+  }, [hayActivos]);
 
   const api = useMemo<TimersApi>(
     () => ({ timers, iniciar, pausar, reanudar, detener }),

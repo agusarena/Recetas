@@ -8,7 +8,8 @@ y te muestra qué podés cocinar ya, con cronómetros integrados por paso.
 
 - **Next.js 16** (App Router, TypeScript, Tailwind CSS 4, Cache Components)
 - **PostgreSQL en Supabase** (RLS: lectura pública, escritura bloqueada)
-- **Sin login**: preferencias y favoritos en `localStorage`
+- **Sin login**: heladera, restricciones, favoritos y última búsqueda en `localStorage`
+- **PWA instalable**: manifest, service worker y página offline (sin dependencias)
 - **Sin IA en esta fase**: recetas cargadas manualmente en la base
 
 ## Puesta en marcha
@@ -23,11 +24,17 @@ npm run dev
 1. Creá un proyecto gratis en [supabase.com](https://supabase.com).
 2. En el **SQL Editor** del dashboard, ejecutá en orden:
    1. `supabase/migrations/0001_init.sql` — tablas, índices y RLS.
-   2. `supabase/seed.sql` — 24 ingredientes y 9 recetas de ejemplo.
-3. Copiá `.env.local.example` a `.env.local` y completá:
+   2. `supabase/migrations/0002_seguridad_e_indices.sql` — revoke de escrituras.
+   3. `supabase/migrations/0003_reemplazos.sql` — reemplazos verificables por el motor.
+   4. `supabase/seed.sql` — 54 ingredientes y 37 recetas de ejemplo.
+3. Copiá `.env.example` a `.env.local` y completá:
    - `NEXT_PUBLIC_SUPABASE_URL` (Project Settings → API → URL)
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API → anon public)
 4. Reiniciá `npm run dev`.
+
+> **Ojo con el orden:** `seed.sql` completa la columna `reemplazo_ingrediente_id`,
+> que crea `0003`. Si corrés el seed antes de esa migración, el `update` final
+> falla. El seed es idempotente: podés volver a correrlo cuando quieras.
 
 Mientras no esté configurado, la app muestra un aviso claro en vez de romperse.
 
@@ -44,6 +51,42 @@ Desde el dashboard de Supabase (Table Editor) o con SQL. Recordá:
 - Los alérgenos de `ingredientes.alergenos` son la red de seguridad: si un
   ingrediente los contiene, la receta se descarta aunque su `etiquetas_dieta`
   diga lo contrario.
+- `receta_ingredientes.reemplazo_ingrediente_id` vincula el reemplazo sugerido
+  con un ingrediente del catálogo: si el usuario lo tiene, la receta cuenta
+  como completa ("Tenés todo usando queso cremoso"). Requiere `0003`.
+- Después de tocar el catálogo, corré `npm run cobertura` para ver si las
+  heladeras típicas siguen encontrando recetas.
+
+## Scripts
+
+| Comando | Qué hace |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run lint` | ESLint (incluye reglas de Next) |
+| `npm run typecheck` | `tsc --noEmit` |
+| `npm test` | Tests unitarios con Vitest |
+| `npm run test:watch` | Tests en modo watch |
+| `npm run check` | Lint + typecheck + tests (lo mismo que corre CI) |
+| `npm run cobertura` | Diagnóstico de cobertura del catálogo por heladera simulada |
+| `npm run smoke` | Smokes manuales del motor y del escalado de porciones |
+| `npm run iconos` | Regenera los PNG de la PWA (requiere Windows/PowerShell) |
+
+## Funcionalidad
+
+- **Buscador con heladera persistida**: chips + autocompletado navegable por
+  teclado (combobox ARIA). La heladera y la última búsqueda sobreviven a la
+  recarga; "Volver a resultados" te devuelve al listado anterior.
+- **Matching con reemplazos**: si no tenés un ingrediente pero sí su reemplazo
+  del catálogo, la receta cuenta como completa y la tarjeta lo aclara.
+- **Cronómetros confiables**: varios simultáneos, persistidos en
+  `localStorage` por deadline absoluto (no se atrasan en segundo plano),
+  con Screen Wake Lock y alerta sonora/vibración al terminar.
+- **Favoritos**: página propia, guardados en el navegador, sin login.
+- **Lista de compras**: copia al portapapeles lo que falta, por receta o para
+  todo el listado de resultados.
+- **PWA**: instalable, con shell offline y recetas visitadas disponibles sin
+  conexión. El service worker solo se registra en producción.
 
 ## Arquitectura
 
@@ -53,18 +96,27 @@ src/
 │   ├── page.tsx              # Pantalla 1: Inicio / Buscador
 │   ├── resultados/page.tsx   # Pantalla 2: Resultados (server + searchParams)
 │   ├── receta/[id]/page.tsx  # Pantalla 3: Modo Cocina
+│   ├── favoritos/page.tsx    # Favoritos (catálogo server + IDs del cliente)
+│   ├── offline/page.tsx      # Fallback del service worker
+│   ├── manifest.ts           # Manifest de la PWA
 │   └── api/buscar/route.ts   # Motor como endpoint JSON (app móvil futura)
 ├── components/               # UI modular (buscador, resultados, receta, timers)
 ├── lib/
 │   ├── motor-busqueda.ts     # Reglas de negocio (pura, testeable, sin I/O)
 │   ├── porciones.ts          # Escalado de cantidades y macros
+│   ├── timers.ts             # Lógica pura de cronómetros (deadline + storage)
 │   ├── preferencias.ts       # localStorage validado (sin login)
 │   ├── filtros.ts            # Validación de query params
 │   ├── datos.ts              # Supabase con `use cache` (caché servidor/CDN)
 │   └── supabase.ts           # Cliente de solo lectura
 └── types/                    # Tipado estricto espejando el esquema SQL
+public/
+├── sw.js                     # Service worker mínimo (sin dependencias)
+└── icons/                    # Iconos de la PWA (generados)
+scripts/                      # Cobertura, parser del seed, smokes, iconos
+tests/                        # Vitest: motor, porciones, timers, filtros, seed, prefs
 supabase/
-├── migrations/0001_init.sql  # Tablas + índices GIN + RLS solo lectura
+├── migrations/               # 0001 init, 0002 seguridad, 0003 reemplazos
 └── seed.sql                  # Contenido inicial
 ```
 
@@ -74,7 +126,8 @@ supabase/
    restricciones (por etiqueta **y** por alérgenos en ingredientes) o superen
    el tiempo máximo.
 2. **Coincidencia**: solo cuentan ingredientes obligatorios (se ignoran
-   `es_basico` y `es_opcional`).
+   `es_basico` y `es_opcional`). Un obligatorio también se cubre si el usuario
+   tiene su `reemplazo_ingrediente_id`.
 3. **Ranking**: Nivel 1 "Tenés todo" (desempata menor tiempo → menor
    dificultad) → Nivel 2 "Te falta 1" (con reemplazo sugerido) → Nivel 3
    "Te faltan 2" (solo si los niveles 1 y 2 devuelven menos de 3 resultados).

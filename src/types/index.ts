@@ -92,7 +92,13 @@ export interface RecetaIngrediente {
   /** Texto orientado a principiantes: ej. "un puñado (más o menos 50 g)". */
   texto_principiante: string | null;
   es_opcional: boolean;
+  /** Texto libre que se muestra como sugerencia de reemplazo. */
   reemplazo_sugerido: string | null;
+  /**
+   * Ingrediente del catálogo que puede cubrir a este. Si el usuario lo tiene
+   * en la heladera, el motor cuenta la receta como completa (con reemplazo).
+   */
+  reemplazo_ingrediente_id: string | null;
 }
 
 /** Receta + su lista de ingredientes resuelta, tal como la consume la UI. */
@@ -102,6 +108,20 @@ export interface RecetaConIngredientes extends Receta {
 
 export interface RecetaIngredienteConDetalle extends RecetaIngrediente {
   ingrediente: Ingrediente;
+}
+
+/**
+ * Proyección liviana de una receta para listados que no necesitan pasos ni
+ * ingredientes (ej. la página de favoritos).
+ */
+export interface ResumenReceta {
+  id: string;
+  titulo: string;
+  descripcion_corta: string;
+  tiempo_minutos: number;
+  dificultad: Dificultad;
+  etiquetas_dieta: EtiquetaDieta[];
+  imagen_url: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -119,6 +139,14 @@ export type NivelCoincidencia = "tenes_todo" | "falta_uno" | "falta_dos";
 export interface IngredienteFaltante {
   nombre: string;
   reemplazo_sugerido: string | null;
+}
+
+/** Reemplazo que el usuario ya tiene y que cubre un ingrediente obligatorio. */
+export interface ReemplazoUsado {
+  /** Ingrediente que pide la receta. */
+  nombre: string;
+  /** Texto amable del reemplazo (ej. "queso cremoso"). */
+  reemplazo: string | null;
 }
 
 /** Filtros que el cliente envía al motor de búsqueda. */
@@ -144,6 +172,8 @@ export interface ResultadoBusqueda {
   /** Total de ingredientes obligatorios de la receta (excluye básicos y opcionales). */
   obligatorios_totales: number;
   faltantes: IngredienteFaltante[];
+  /** Ingredientes cubiertos por un reemplazo que el usuario ya tiene. */
+  reemplazos_usados: ReemplazoUsado[];
 }
 
 /** Respuesta del endpoint /api/buscar (y del motor en general). */
@@ -157,13 +187,17 @@ export interface RespuestaBusqueda {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Versión del esquema de preferencias, para invalidar localStorage futuro. */
-export const PREFERENCIAS_VERSION = 1 as const;
+export const PREFERENCIAS_VERSION = 2 as const;
 
 export interface Preferencias {
   version: typeof PREFERENCIAS_VERSION;
   restricciones: EtiquetaDieta[];
   /** IDs de recetas marcadas como favoritas. */
   favoritos: string[];
+  /** IDs de ingredientes que el usuario dejó cargados en su heladera. */
+  heladera: string[];
+  /** Query string de la última búsqueda, para volver desde una receta. */
+  ultima_busqueda: string | null;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -177,7 +211,13 @@ export interface Timer {
   etiqueta: string;
   /** Segundos totales al iniciar. */
   duracion_segundos: number;
-  /** Segundos restantes (se descuenta con el tick). */
+  /** Segundos restantes, recalculados desde `termina_en`. */
   restante_segundos: number;
   estado: EstadoTimer;
+  /**
+   * Momento exacto (epoch ms) en que termina el timer mientras corre.
+   * null = pausado o terminado. Es la fuente de verdad para evitar el
+   * desfasaje de los `setInterval` en pestañas en segundo plano.
+   */
+  termina_en: number | null;
 }

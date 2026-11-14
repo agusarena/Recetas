@@ -27,6 +27,7 @@ import type {
   Receta,
   RecetaConIngredientes,
   RecetaIngredienteConDetalle,
+  ResumenReceta,
   Unidad,
 } from "@/types";
 
@@ -59,7 +60,7 @@ const COLS_RECETA =
  * Es un template literal (no un join): el tipo literal es lo que permite
  * a supabase-js inferir la forma de las filas en el cliente.
  */
-const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, ingrediente:ingredientes(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
+const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, reemplazo_ingrediente_id, ingrediente:ingredientes(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
 
 /** Un uuid v4-ish: suficiente para descartar basura de URL antes de SQL. */
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -78,6 +79,7 @@ type FilaRecetaIngrediente = {
   texto_principiante: string | null;
   es_opcional: boolean;
   reemplazo_sugerido: string | null;
+  reemplazo_ingrediente_id: string | null;
   ingrediente: Record<string, unknown> | null;
   receta: Record<string, unknown> | null;
 };
@@ -159,6 +161,8 @@ function normalizarRecetaIngrediente(fila: any): RecetaIngredienteConDetalle {
     texto_principiante: fila.texto_principiante == null ? null : String(fila.texto_principiante),
     es_opcional: Boolean(fila.es_opcional),
     reemplazo_sugerido: fila.reemplazo_sugerido == null ? null : String(fila.reemplazo_sugerido),
+    reemplazo_ingrediente_id:
+      fila.reemplazo_ingrediente_id == null ? null : String(fila.reemplazo_ingrediente_id),
     ingrediente: normalizarIngrediente(fila.ingrediente),
   };
 }
@@ -249,5 +253,18 @@ export async function obtenerReceta(id: string): Promise<Estado<RecetaConIngredi
       ...receta,
       ingredientes: data.filter(filaConIngrediente).map(normalizarRecetaIngrediente),
     },
+  };
+}
+
+/** Proyección liviana para listados (favoritos): sin pasos ni ingredientes. */
+export function resumirReceta(receta: Receta): ResumenReceta {
+  return {
+    id: receta.id,
+    titulo: receta.titulo,
+    descripcion_corta: receta.descripcion_corta,
+    tiempo_minutos: receta.tiempo_minutos,
+    dificultad: receta.dificultad,
+    etiquetas_dieta: receta.etiquetas_dieta,
+    imagen_url: receta.imagen_url,
   };
 }

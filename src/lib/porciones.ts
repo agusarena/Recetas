@@ -25,8 +25,10 @@ export function escalarCantidad(cantidadBase: number, factor: number): number {
 export function redondearCantidad(cantidad: number, unidad: Unidad): number {
   if (unidad === "pizca") return Math.max(1, Math.round(cantidad));
   if (unidad === "g" || unidad === "ml") {
+    if (cantidad <= 0) return 0;
     const base = cantidad >= 100 ? 10 : 5;
-    return Math.round(cantidad / base) * base;
+    // Evita que una cantidad chica (ej. 2 g de especias) se muestre como 0 g.
+    return Math.max(1, Math.round(cantidad / base) * base);
   }
   return Math.round(cantidad * 2) / 2; // múltiplos de 0.5
 }
@@ -50,19 +52,21 @@ function fraccionLegible(valor: number): string {
 
 /** Etiqueta legible de la unidad para acompañar la cantidad. */
 export function etiquetaUnidad(unidad: Unidad, cantidad: number): string {
+  // Singular con 0.5 ("½ unidad") y plural con 1.5 ("1 ½ unidades").
+  const plural = cantidad > 1;
   switch (unidad) {
     case "g":
       return "g";
     case "ml":
       return "ml";
     case "cda":
-      return cantidad === 1 ? "cda" : "cdas";
+      return plural ? "cdas" : "cda";
     case "taza":
-      return cantidad === 1 ? "taza" : "tazas";
+      return plural ? "tazas" : "taza";
     case "pizca":
-      return "pizca";
+      return plural ? "pizcas" : "pizca";
     case "unidad":
-      return cantidad === 1 ? "unidad" : "unidades";
+      return plural ? "unidades" : "unidad";
   }
 }
 

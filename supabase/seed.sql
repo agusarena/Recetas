@@ -1,6 +1,7 @@
 -- =============================================================
--- seed.sql — Catálogo ampliado: 40 ingredientes + 21 recetas.
--- Ejecutar DESPUÉS de 0001_init.sql y 0002_seguridad_e_indices.sql
+-- seed.sql — Catálogo ampliado: 54 ingredientes + 37 recetas.
+-- Ejecutar DESPUÉS de 0001_init.sql, 0002_seguridad_e_indices.sql y
+-- 0003_reemplazos.sql
 -- (SQL Editor del dashboard de Supabase o supabase db reset).
 --
 -- Todo el archivo corre en UNA transacción: si algo falla, no queda
@@ -56,7 +57,23 @@ insert into ingredientes (id, nombre, categoria, es_basico, alergenos) values
   ('00000000-0000-4000-8000-000000000037', 'Manzana',                     'frescos',   false, '{}'),
   ('00000000-0000-4000-8000-000000000038', 'Miel',                        'almacén',   false, '{}'),
   ('00000000-0000-4000-8000-000000000039', 'Choclo en lata',              'almacén',   false, '{}'),
-  ('00000000-0000-4000-8000-000000000040', 'Jamón cocido',                'carnes',    false, '{}')
+  ('00000000-0000-4000-8000-000000000040', 'Jamón cocido',                'carnes',    false, '{}'),
+  -- Ingredientes que existen sobre todo como reemplazo de otro (0003).
+  ('00000000-0000-4000-8000-000000000041', 'Cebolla de verdeo',           'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000042', 'Muslos de pollo',             'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000043', 'Queso crema',                 'lácteos',   false, '{lactosa}'),
+  ('00000000-0000-4000-8000-000000000044', 'Vinagre',                     'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000045', 'Arvejas en lata',             'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000046', 'Acelga',                      'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000047', 'Maní y almendras',            'almacén',   false, '{frutos_secos}'),
+  ('00000000-0000-4000-8000-000000000048', 'Pera',                        'frescos',   false, '{}'),
+  -- Nuevos en Fase 2 (00000000-0000-4000-8000-000000000049 a 0054).
+  ('00000000-0000-4000-8000-000000000049', 'Polenta',                     'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000050', 'Apio',                        'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000051', 'Caldo en cubito',             'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000052', 'Frutillas',                   'frescos',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000053', 'Durazno en lata',             'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000054', 'Dulce de leche',              'almacén',   false, '{lactosa}')
 on conflict (id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -344,6 +361,225 @@ insert into recetas (id, titulo, descripcion_corta, tiempo_minutos, dificultad, 
    'Escurrí bien el agua antes de pisar para que el puré no te quede aguado.',
    '{vegetariano,sin_tacc,sin_frutos_secos}',
    '{"calorias":220,"perfil":"carbohidratos","proteinas":4,"carbohidratos":38,"grasas":6}'::jsonb,
+   null),
+
+  -- ─────────────────────────────────────────────────────────────
+  -- Fase 2 (122 a 137): recetas para las heladeras que menos
+  -- resultados útiles tenían (Mínima, Boloñesa, Wok, Fruta).
+  -- ─────────────────────────────────────────────────────────────
+  ('00000000-0000-4000-8000-000000000122',
+   'Papas al horno con huevo',
+   'Crocantes por fuera, tiernas adentro y con huevo encima. Todo en una sola bandeja.',
+   35, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 200 grados.","tiempo_segundos":null},
+     {"orden":2,"texto":"Lavá las papas y cortalas en gajos finos (sin pelar si querés más crocante).","tiempo_segundos":null},
+     {"orden":3,"texto":"Aliñalas con aceite, sal y pimienta, y estiralas en una sola capa sobre la bandeja.","tiempo_segundos":null},
+     {"orden":4,"texto":"Horneá 25 minutos, moviéndolas a mitad de cocción.","tiempo_segundos":1500},
+     {"orden":5,"texto":"Mientras, hacé 2 huevos a la sartén y servilos sobre las papas bien calientes.","tiempo_segundos":null}]',
+   'Dejá espacio entre los gajos: si se amontonan se cuecen al vapor y no se doren.',
+   '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":390,"perfil":"balanceado","proteinas":17,"carbohidratos":38,"grasas":18}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000123',
+   'Papa al horno con queso y huevo',
+   'Papas doradas con queso fundido y un huevo encima. Reconfortante y en una sola bandeja.',
+   40, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 200 grados y cortá las papas en gajos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Aliñalas con aceite, sal y pimentón y horneá 25 minutos hasta que estén doradas.","tiempo_segundos":1500},
+     {"orden":3,"texto":"Repartí el queso rallado por encima y quebrá 2 huevos encima, uno por cada porción.","tiempo_segundos":null},
+     {"orden":4,"texto":"Volvé al horno 8 minutos hasta que las claras cuajen.","tiempo_segundos":480}]',
+   'Sacá la bandeja cuando las claras apenas cuajaron: con el calor residual la yema queda cremosa.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":460,"perfil":"balanceado","proteinas":21,"carbohidratos":41,"grasas":23}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000124',
+   'Empanadas de carne al horno',
+   'Masa casera hecha en la mesada y relleno de carne picada. Sin fritura.',
+   70, 'facil', 4,
+   '[{"orden":1,"texto":"Mezclá la harina con agua tibia, sal y 2 cucharadas de aceite hasta formar una masa lisa.","tiempo_segundos":null},
+     {"orden":2,"texto":"Tapala con un repasero y dejala reposar 10 minutos.","tiempo_segundos":600},
+     {"orden":3,"texto":"Dorá la cebolla en aceite, agregá la carne y cociná 10 minutos a fuego medio con pimentón.","tiempo_segundos":600},
+     {"orden":4,"texto":"Estirá la masa sobre la mesada, cortá moldes, rellená y cerrá apretando el borde con un tenedor.","tiempo_segundos":null},
+     {"orden":5,"texto":"Horneá a 200 grados 20 minutos o hasta que estén doradas.","tiempo_segundos":1200}]',
+   'Si tenés una sola bandeja, horneá de a tandas y guardá las empanadas armadas tapadas para que la masa no se seque.',
+   '{sin_lactosa,sin_frutos_secos}',
+   '{"calorias":470,"perfil":"balanceado","proteinas":21,"carbohidratos":50,"grasas":21}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000125',
+   'Guiso de carne picada con arroz',
+   'Carne salteada con tomate y arroz absorbiendo todo el jugo. Una sola olla.',
+   35, 'facil', 3,
+   '[{"orden":1,"texto":"Dorá la cebolla picada en una olla con aceite durante 3 minutos.","tiempo_segundos":180},
+     {"orden":2,"texto":"Agregá la carne y cociná 5 minutos moviéndola con la cuchara para que se desarme.","tiempo_segundos":300},
+     {"orden":3,"texto":"Incorporá el puré de tomate, el pimentón y 2 tazas de agua caliente.","tiempo_segundos":null},
+     {"orden":4,"texto":"Sumá el arroz, tapá y cociná 15 minutos a fuego bajo sin remover.","tiempo_segundos":900},
+     {"orden":5,"texto":"Apagá y dejá reposar 5 minutos tapado antes de servir.","tiempo_segundos":300}]',
+   'Tapá la olla y no la toques los últimos 10 minutos: ahí el arroz suelta el almidón y no se pega.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":530,"perfil":"carbohidratos","proteinas":24,"carbohidratos":58,"grasas":19}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000126',
+   'Arroz chaufa rápido',
+   'El clásico arroz con huevo hecho en 20 minutos con lo que haya en la heladera.',
+   20, 'facil', 2,
+   '[{"orden":1,"texto":"Picá finamente la cebolla y cortá la pechuga en cubos chicos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Dorá el pollo a fuego fuerte 5 minutos hasta que se dore por fuera.","tiempo_segundos":300},
+     {"orden":3,"texto":"Sumá la cebolla y el arroz y salteá moviendo seguido 4 minutos.","tiempo_segundos":240},
+     {"orden":4,"texto":"Empujá todo a un costado, quebrá los huevos en el espacio libre y revolver hasta que cuajen.","tiempo_segundos":null},
+     {"orden":5,"texto":"Mezclá todo, salpimentá y serví de inmediato.","tiempo_segundos":null}]',
+   'Usá arroz del día anterior: recién hecho se pega y se rompe al saltear.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":490,"perfil":"carbohidratos","proteinas":26,"carbohidratos":58,"grasas":15}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000127',
+   'Arroz saltado con arvejas',
+   'Arroz salteado con arvejas de lata: cero complicaciones y listo en minutos.',
+   15, 'facil', 2,
+   '[{"orden":1,"texto":"Dorá la cebolla y el ajo en aceite a fuego fuerte durante 3 minutos.","tiempo_segundos":180},
+     {"orden":2,"texto":"Agregá las arvejas escurridas y salteá 3 minutos más.","tiempo_segundos":180},
+     {"orden":3,"texto":"Incorporá el arroz frío y mové sin parar 4 minutos hasta que brille.","tiempo_segundos":240},
+     {"orden":4,"texto":"Salpimentá, apagá el fuego y serví bien caliente.","tiempo_segundos":null}]',
+   'Escurrí bien las arvejas antes de tirarlas a la sartén: si vienen mojadas bajan la temperatura y dejan de dorarse.',
+   '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":400,"perfil":"carbohidratos","proteinas":13,"carbohidratos":72,"grasas":8}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000128',
+   'Licuado de pera, yogur y miel',
+   'Cremoso, dulce y en dos minutos sin prender nada. Frío o tibio según la hora.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Lavá la pera, quitale el corazón y cortala en trozos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Poné la pera, el yogur y la miel en la licuadora.","tiempo_segundos":null},
+     {"orden":3,"texto":"Licuá 30 segundos hasta que quede homogéneo.","tiempo_segundos":30},
+     {"orden":4,"texto":"Probá y endulzá con miel si hace falta.","tiempo_segundos":null}]',
+   'Si la pera está muy madura usala de una: endulza sin necesitar tanta miel.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":280,"perfil":"balanceado","proteinas":8,"carbohidratos":52,"grasas":5}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000129',
+   'Tostadas de pera con miel',
+   'Dulce, crocante y en 5 minutos: pera madura sobre pan tostado.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Tostá las rebanadas de pan hasta que queden doradas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Cortá la pera en láminas finas.","tiempo_segundos":null},
+     {"orden":3,"texto":"Acomodá las láminas sobre el pan caliente.","tiempo_segundos":null},
+     {"orden":4,"texto":"Terminá con un hilo de miel y serví de inmediato.","tiempo_segundos":null}]',
+   'Elegí una pera bien madura: si está dura se desliza del pan en vez de quedar pegada.',
+   '{vegetariano,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":260,"perfil":"carbohidratos","proteinas":6,"carbohidratos":46,"grasas":6}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000130',
+   'Milanesas de pollo al horno',
+   'Crocantes por fuera y jugosas adentro, sin fritura ni olor a aceite en la casa.',
+   35, 'facil', 2,
+   '[{"orden":1,"texto":"Aplaná las pechugas con un vaso hasta que queden de un centímetro de grosor.","tiempo_segundos":null},
+     {"orden":2,"texto":"Batí los huevos con sal y pimienta en un plato hondo.","tiempo_segundos":null},
+     {"orden":3,"texto":"Pasá el pollo por el huevo y después por el pan rallado, presionando con la mano.","tiempo_segundos":null},
+     {"orden":4,"texto":"Poné las milanesas en una bandeja encharcada de aceite y horneá a 200 grados 20 minutos, dando vuelta a la mitad.","tiempo_segundos":1200}]',
+   'Aplaná las pechugas con un vaso: se cocinan parejos y no se seca el centro.',
+   '{sin_lactosa,sin_frutos_secos}',
+   '{"calorias":430,"perfil":"balanceado","proteinas":39,"carbohidratos":23,"grasas":20}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000131',
+   'Ensalada de pollo con palta y tomate',
+   'Fresca y proteica, con pollo, palta y tomate. Sin fuego y en 10 minutos.',
+   15, 'facil', 2,
+   '[{"orden":1,"texto":"Cortá el pollo cocido en tiras (sobras de pollo asado funcionan perfecto).","tiempo_segundos":null},
+     {"orden":2,"texto":"Cortá el tomate en gajos y la palta en láminas.","tiempo_segundos":null},
+     {"orden":3,"texto":"Mezclá todo con suavidad en un bowl para que la palta no se deshaga.","tiempo_segundos":null},
+     {"orden":4,"texto":"Aliñá con aceite, sal y un chorrito de limón recién exprimido.","tiempo_segundos":null}]',
+   'Exprimí el limón justo antes de servir: si lo hacés antes la palta se pone marrona.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":420,"perfil":"balanceado","proteinas":32,"carbohidratos":14,"grasas":26}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000132',
+   'Sopa de fideos con verduras',
+   'Caldo casero con fideos y verduras. Reconfortante en 25 minutos.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Picá la cebolla y rallá la zanahoria.","tiempo_segundos":null},
+     {"orden":2,"texto":"Dorá las verduras en una olla con aceite durante 5 minutos.","tiempo_segundos":300},
+     {"orden":3,"texto":"Cubrí todo con agua y herví a fuego medio 8 minutos.","tiempo_segundos":480},
+     {"orden":4,"texto":"Sumá los fideos y cociná el tiempo que indique el paquete.","tiempo_segundos":null},
+     {"orden":5,"texto":"Apagá, tapá y dejá reposar 2 minutos antes de servir.","tiempo_segundos":120}]',
+   'Apagá el fuego y tapá la olla: los fideos siguen cociendo con el calor y no quedan pastosos.',
+   '{vegetariano,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":350,"perfil":"carbohidratos","proteinas":10,"carbohidratos":56,"grasas":8}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000133',
+   'Estofado rápido de pollo',
+   'Pollo tierno con papa y zanahorias en su propio jugo. Una sola olla.',
+   45, 'facil', 3,
+   '[{"orden":1,"texto":"Dorá el pollo por ambos lados 4 minutos y reserve.","tiempo_segundos":240},
+     {"orden":2,"texto":"En la misma olla dorá la cebolla, la zanahoria y el ajo 4 minutos.","tiempo_segundos":240},
+     {"orden":3,"texto":"Devolvé el pollo, cubrí con agua hasta la mitad y salpimentá.","tiempo_segundos":null},
+     {"orden":4,"texto":"Tapá y cociná 30 minutos a fuego bajo hasta que la papa esté tierna.","tiempo_segundos":1800},
+     {"orden":5,"texto":"Dejá reposar 5 minutos y serví con el jugo de la cocción.","tiempo_segundos":300}]',
+   'Sacá el pollo antes de dorar las verduras y devuélvelo después: queda sellado por fuera y jugoso adentro.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":470,"perfil":"balanceado","proteinas":36,"carbohidratos":28,"grasas":23}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000134',
+   'Verduras al horno con papa',
+   'Verduras cortadas gruesas y doradas al horno. Guarnición o plato principal.',
+   40, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 220 grados.","tiempo_segundos":null},
+     {"orden":2,"texto":"Cortá la papa, la cebolla y la zanahoria en trozos de tamaño similar.","tiempo_segundos":null},
+     {"orden":3,"texto":"Aliñá con aceite, sal, orégano y pimentón.","tiempo_segundos":null},
+     {"orden":4,"texto":"Estirá todo en capa única y horneá 30 minutos, moviendo a mitad de cocción.","tiempo_segundos":1800}]',
+   'El horno tiene que estar bien caliente desde el inicio: si entra frío la verdura se hierve en vez de dorarse.',
+   '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":310,"perfil":"carbohidratos","proteinas":7,"carbohidratos":49,"grasas":11}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000135',
+   'Ensalada de garbanzos con tomate y cebolla',
+   'Proteína vegetal fría lista en 10 minutos. Aguanta toda la semana en la heladera.',
+   10, 'cero_cocina', 2,
+   '[{"orden":1,"texto":"Enjuagá los garbanzos hasta que el agua salga clara.","tiempo_segundos":null},
+     {"orden":2,"texto":"Picá finamente la cebolla y cortá el tomate en cubos chicos.","tiempo_segundos":null},
+     {"orden":3,"texto":"Mezclá todo en un bowl con aceite y sal.","tiempo_segundos":null},
+     {"orden":4,"texto":"Dejá reposar 5 minutos para que se aromatice antes de servir.","tiempo_segundos":300}]',
+   'Enjuagá los garbanzos bien: con eso se pierde el sabor a lata y quedan suaves.',
+   '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":340,"perfil":"balanceado","proteinas":15,"carbohidratos":48,"grasas":9}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000136',
+   'Polenta con salsa de carne picada',
+   'Polenta cremosa con salsa rápida de carne. Rendidora y reconfortante.',
+   30, 'facil', 3,
+   '[{"orden":1,"texto":"Dorá la cebolla en aceite durante 3 minutos.","tiempo_segundos":180},
+     {"orden":2,"texto":"Agregá la carne y cociná 5 minutos con pimentón.","tiempo_segundos":300},
+     {"orden":3,"texto":"Sumá el puré de tomate y cociná la salsa 10 minutos a fuego bajo.","tiempo_segundos":600},
+     {"orden":4,"texto":"En otra olla herví agua con sal y tirá la polenta en lluvia removiendo sin parar.","tiempo_segundos":null},
+     {"orden":5,"texto":"Cociná 8 minutos a fuego medio hasta que espese, tapando si salpica.","tiempo_segundos":480}]',
+   'Tirá la polenta en lluvia y seguí removiendo: si la echás toda junto se forman bolas que no se desarman.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":540,"perfil":"carbohidratos","proteinas":23,"carbohidratos":64,"grasas":20}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000137',
+   'Ensalada de frutas con miel y yogur',
+   'Fruta de la semana con yogur y miel: fresca, dulce y en 5 minutos.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Lavá la fruta y cortá la banana y la manzana en bastones finos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Serví el yogur en un bowl o vaso hondo.","tiempo_segundos":null},
+     {"orden":3,"texto":"Acomodá la fruta encima.","tiempo_segundos":null},
+     {"orden":4,"texto":"Terminá con un hilo de miel.","tiempo_segundos":null}]',
+   'Cortá la banana en el último momento: al aire se pone marrona muy rápido.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":300,"perfil":"balanceado","proteinas":9,"carbohidratos":54,"grasas":7}'::jsonb,
    null)
 on conflict (id) do nothing;
 
@@ -467,7 +703,190 @@ insert into receta_ingredientes (receta_id, ingrediente_id, cantidad_base, unida
   ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000006', 400, 'g', '3 papas medianas', false, null),
   ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000030', 300, 'g', '1 trozo de calabaza', false, null),
   ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000013', 20, 'g', '1 nuez de manteca (1 cda)', false, '2 cdas de aceite'),
-  ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000014', 50, 'ml', 'un chorrito de leche tibia', false, 'agua de cocción')
+  ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000014', 50, 'ml', 'un chorrito de leche tibia', false, 'agua de cocción'),
+
+  -- Papas al horno con huevo (122)
+  ('00000000-0000-4000-8000-000000000122', '00000000-0000-4000-8000-000000000006', 600, 'g', '3 papas medianas en gajos', false, null),
+  ('00000000-0000-4000-8000-000000000122', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos', false, null),
+
+  -- Papa al horno con queso y huevo (123)
+  ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000006', 700, 'g', '4 papas medianas', false, null),
+  ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos', false, null),
+  ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000035', 150, 'g', 'un puñado generoso de muzzarella', false, 'queso rallado'),
+  ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000016', 1, 'unidad', '1 morrón en cubos (opcional)', true, null),
+
+  -- Empanadas de carne al horno (124)
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000034', 300, 'g', '2 tazas de harina (300 g)', false, null),
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000025', 400, 'g', '400 g de carne picada', false, 'lentejas cocidas picadas'),
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla grande', false, null),
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000005', 1, 'unidad', '1 huevo para el repulgue (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo picado (opcional)', true, null),
+
+  -- Guiso de carne picada con arroz (125)
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000025', 300, 'g', '300 g de carne picada', false, 'lentejas cocidas o atún'),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000010', 1, 'taza', '1 taza de arroz (un puñado generoso)', false, null),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla mediana', false, null),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000026', 1, 'unidad', '1 lata de puré de tomate', false, '2 tomates maduros picados'),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000016', 1, 'unidad', '1 morrón (opcional)', true, null),
+
+  -- Arroz chaufa rápido (126)
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000010', 1, 'taza', '1 taza de arroz del día anterior', false, null),
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000011', 1, 'unidad', '1 pechuga', false, 'muslos de pollo'),
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla chica', false, null),
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos', false, null),
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000016', 1, 'unidad', '1 morrón en cubos (opcional)', true, null),
+
+  -- Arroz saltado con arvejas (127)
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000010', 1, 'taza', '1 taza de arroz del día anterior', false, null),
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000045', 1, 'unidad', '1 lata de arvejas', false, '1 lata de choclo'),
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla chica', false, null),
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo', false, null),
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000015', 1, 'unidad', '1 zanahoria rallada (opcional)', true, null),
+
+  -- Licuado de pera, yogur y miel (128)
+  ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000048', 1, 'unidad', '1 pera madura', false, '1 manzana'),
+  ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000023', 1, 'unidad', '1 pote chico de yogur (175 g)', false, null),
+  ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000038', 1, 'cda', '1 cucharada de miel', false, null),
+  ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000022', 2, 'cda', '2 cdas de avena (opcional)', true, null),
+
+  -- Tostadas de pera con miel (129)
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000020', 2, 'unidad', '2 rebanadas de pan', false, null),
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000048', 1, 'unidad', '1 pera madura', false, '1 manzana'),
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000038', 1, 'cda', '1 cucharada de miel', false, 'dulce de leche'),
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000043', 1, 'cda', '1 cdita de queso crema (opcional)', true, null),
+
+  -- Milanesas de pollo al horno (130)
+  ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000011', 2, 'unidad', '2 pechugas', false, 'muslos de pollo'),
+  ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos', false, null),
+  ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000020', 100, 'g', 'migas de pan (2 rebanadas ralladas)', false, null),
+  ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo (opcional)', true, null),
+
+  -- Ensalada de pollo con palta y tomate (131)
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000011', 1, 'unidad', '1 pechuga cocida (o sobras de pollo asado)', false, 'muslos de pollo'),
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000017', 1, 'unidad', '1 palta', false, null),
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000008', 2, 'unidad', '2 tomates', false, null),
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000007', 0.5, 'unidad', 'media cebolla en pluma (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000024', 1, 'unidad', '1 limón (opcional)', true, null),
+
+  -- Sopa de fideos con verduras (132)
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000009', 200, 'g', 'medio paquete de fideos', false, null),
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, null),
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000015', 1, 'unidad', '1 zanahoria', false, '1 tallo de apio'),
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000050', 1, 'unidad', '1 tallo de apio en rodajas (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000026', 2, 'cda', '2 cdas de puré de tomate (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000051', 1, 'unidad', '1 cubito de caldo (opcional)', true, null),
+
+  -- Estofado rápido de pollo (133)
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000011', 2, 'unidad', '2 pechugas', false, 'muslos de pollo'),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000006', 2, 'unidad', '2 papas medianas', false, null),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, null),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000015', 2, 'unidad', '2 zanahorias', false, null),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000019', 2, 'unidad', '2 dientes de ajo (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000051', 1, 'unidad', '1 cubito de caldo (opcional)', true, null),
+
+  -- Verduras al horno con papa (134)
+  ('00000000-0000-4000-8000-000000000134', '00000000-0000-4000-8000-000000000006', 500, 'g', '3 papas medianas', false, null),
+  ('00000000-0000-4000-8000-000000000134', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, null),
+  ('00000000-0000-4000-8000-000000000134', '00000000-0000-4000-8000-000000000015', 3, 'unidad', '3 zanahorias', false, null),
+  ('00000000-0000-4000-8000-000000000134', '00000000-0000-4000-8000-000000000016', 1, 'unidad', '1 morrón (opcional)', true, null),
+
+  -- Ensalada de garbanzos con tomate y cebolla (135)
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000028', 1, 'unidad', '1 lata de garbanzos', false, '1 lata de lentejas'),
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000008', 2, 'unidad', '2 tomates', false, null),
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000007', 0.5, 'unidad', 'media cebolla', false, null),
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000016', 0.5, 'unidad', 'medio morrón en cubos (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000044', 1, 'cda', '1 cda de vinagre (opcional)', true, null),
+
+  -- Polenta con salsa de carne picada (136)
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000049', 300, 'g', '300 g de polenta (3 tazas)', false, null),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000025', 300, 'g', '300 g de carne picada', false, 'lentejas cocidas picadas'),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, null),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000026', 1, 'unidad', '1 lata de puré de tomate', false, '2 tomates maduros picados'),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000012', 2, 'cda', '2 cdas de queso rallado (opcional)', true, null),
+
+  -- Ensalada de frutas con miel y yogur (137)
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000021', 1, 'unidad', '1 banana', false, null),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000037', 1, 'unidad', '1 manzana', false, 'pera'),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000023', 1, 'unidad', '1 pote chico de yogur (175 g)', false, null),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000038', 1, 'cda', '1 cucharada de miel', false, 'dulce de leche'),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000052', 4, 'unidad', '4 frutillas (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000053', 1, 'unidad', 'media lata de duraznos (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000022', 2, 'cda', '2 cdas de avena (opcional)', true, null)
 on conflict (receta_id, ingrediente_id) do nothing;
+
+-- ─────────────────────────────────────────────────────────────
+-- Reemplazos verificables (0003)
+--
+-- Vincula el texto de `reemplazo_sugerido` con un ingrediente real para
+-- que el motor cuente la receta como completa si el usuario tiene el
+-- reemplazo. Es idempotente: se puede correr varias veces.
+-- ─────────────────────────────────────────────────────────────
+update public.receta_ingredientes as ri
+set reemplazo_ingrediente_id = v.reemplazo_id::uuid
+from (values
+  -- Tortilla: cebolla → cebolla de verdeo
+  ('00000000-0000-4000-8000-000000000101', '00000000-0000-4000-8000-000000000007', '00000000-0000-4000-8000-000000000041'),
+  -- Fideos con manteca y queso: manteca → aceite; queso rallado → queso cremoso
+  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000013', '00000000-0000-4000-8000-000000000003'),
+  ('00000000-0000-4000-8000-000000000102', '00000000-0000-4000-8000-000000000012', '00000000-0000-4000-8000-000000000035'),
+  -- Wok: cebolla → cebolla de verdeo
+  ('00000000-0000-4000-8000-000000000103', '00000000-0000-4000-8000-000000000007', '00000000-0000-4000-8000-000000000041'),
+  -- Omelette: queso rallado → queso cremoso
+  ('00000000-0000-4000-8000-000000000104', '00000000-0000-4000-8000-000000000012', '00000000-0000-4000-8000-000000000035'),
+  -- Guiso: pollo → muslos; tomate → puré de tomate
+  ('00000000-0000-4000-8000-000000000107', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
+  ('00000000-0000-4000-8000-000000000107', '00000000-0000-4000-8000-000000000008', '00000000-0000-4000-8000-000000000026'),
+  -- Banana con avena: yogur → queso crema
+  ('00000000-0000-4000-8000-000000000108', '00000000-0000-4000-8000-000000000023', '00000000-0000-4000-8000-000000000043'),
+  -- Boloñesa: carne → lentejas; puré de tomate → tomate
+  ('00000000-0000-4000-8000-000000000110', '00000000-0000-4000-8000-000000000025', '00000000-0000-4000-8000-000000000027'),
+  ('00000000-0000-4000-8000-000000000110', '00000000-0000-4000-8000-000000000026', '00000000-0000-4000-8000-000000000008'),
+  -- Ensalada de lentejas: lentejas → garbanzos; limón → vinagre
+  ('00000000-0000-4000-8000-000000000113', '00000000-0000-4000-8000-000000000027', '00000000-0000-4000-8000-000000000028'),
+  ('00000000-0000-4000-8000-000000000113', '00000000-0000-4000-8000-000000000024', '00000000-0000-4000-8000-000000000044'),
+  -- Arroz salteado: choclo → arvejas
+  ('00000000-0000-4000-8000-000000000115', '00000000-0000-4000-8000-000000000039', '00000000-0000-4000-8000-000000000045'),
+  -- Omelette verde: espinaca → acelga; queso cremoso → queso rallado
+  ('00000000-0000-4000-8000-000000000116', '00000000-0000-4000-8000-000000000031', '00000000-0000-4000-8000-000000000046'),
+  ('00000000-0000-4000-8000-000000000116', '00000000-0000-4000-8000-000000000035', '00000000-0000-4000-8000-000000000012'),
+  -- Napolitana: puré de tomate → tomate
+  ('00000000-0000-4000-8000-000000000118', '00000000-0000-4000-8000-000000000026', '00000000-0000-4000-8000-000000000008'),
+  -- Tostado: manteca → aceite
+  ('00000000-0000-4000-8000-000000000119', '00000000-0000-4000-8000-000000000013', '00000000-0000-4000-8000-000000000003'),
+  -- Yogur con frutas: manzana → pera; nueces → maní y almendras
+  ('00000000-0000-4000-8000-000000000120', '00000000-0000-4000-8000-000000000037', '00000000-0000-4000-8000-000000000048'),
+  ('00000000-0000-4000-8000-000000000120', '00000000-0000-4000-8000-000000000036', '00000000-0000-4000-8000-000000000047'),
+  -- Puré rústico: manteca → aceite
+  ('00000000-0000-4000-8000-000000000121', '00000000-0000-4000-8000-000000000013', '00000000-0000-4000-8000-000000000003'),
+  -- Fase 2 (122 a 137)
+  -- Papa con queso: queso cremoso → queso rallado
+  ('00000000-0000-4000-8000-000000000123', '00000000-0000-4000-8000-000000000035', '00000000-0000-4000-8000-000000000012'),
+  -- Empanadas y guisos: carne picada → lentejas; puré → tomate fresco
+  ('00000000-0000-4000-8000-000000000124', '00000000-0000-4000-8000-000000000025', '00000000-0000-4000-8000-000000000027'),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000025', '00000000-0000-4000-8000-000000000027'),
+  ('00000000-0000-4000-8000-000000000125', '00000000-0000-4000-8000-000000000026', '00000000-0000-4000-8000-000000000008'),
+  -- Chaufa y milanesas: pechuga → muslos
+  ('00000000-0000-4000-8000-000000000126', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
+  ('00000000-0000-4000-8000-000000000130', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
+  ('00000000-0000-4000-8000-000000000131', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
+  ('00000000-0000-4000-8000-000000000133', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
+  -- Arroz saltado: arvejas → choclo
+  ('00000000-0000-4000-8000-000000000127', '00000000-0000-4000-8000-000000000045', '00000000-0000-4000-8000-000000000039'),
+  -- Postres: pera → manzana; miel → dulce de leche
+  ('00000000-0000-4000-8000-000000000128', '00000000-0000-4000-8000-000000000048', '00000000-0000-4000-8000-000000000037'),
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000048', '00000000-0000-4000-8000-000000000037'),
+  ('00000000-0000-4000-8000-000000000129', '00000000-0000-4000-8000-000000000038', '00000000-0000-4000-8000-000000000054'),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000037', '00000000-0000-4000-8000-000000000048'),
+  ('00000000-0000-4000-8000-000000000137', '00000000-0000-4000-8000-000000000038', '00000000-0000-4000-8000-000000000054'),
+  -- Sopa: zanahoria → apio
+  ('00000000-0000-4000-8000-000000000132', '00000000-0000-4000-8000-000000000015', '00000000-0000-4000-8000-000000000050'),
+  -- Garbanzos → lentejas; polenta: carne → lentejas, puré → tomate
+  ('00000000-0000-4000-8000-000000000135', '00000000-0000-4000-8000-000000000028', '00000000-0000-4000-8000-000000000027'),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000025', '00000000-0000-4000-8000-000000000027'),
+  ('00000000-0000-4000-8000-000000000136', '00000000-0000-4000-8000-000000000026', '00000000-0000-4000-8000-000000000008')
+) as v(receta_id, ingrediente_id, reemplazo_id)
+where ri.receta_id = v.receta_id::uuid
+  and ri.ingrediente_id = v.ingrediente_id::uuid
+  and ri.reemplazo_ingrediente_id is distinct from v.reemplazo_id::uuid;
 
 commit;

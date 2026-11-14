@@ -7,7 +7,7 @@ const casos: [string, unknown, unknown][] = [
   ["30 g → 45 g", formatearCantidad(escalarCantidad(30, factor), "g"), "45 g"],
   ["0,5 unidad → 1 unidad (redondeo ¾→1)", formatearCantidad(escalarCantidad(0.5, 1.5), "unidad"), "1 unidad"],
   ["2 cda → 3 cdas", formatearCantidad(escalarCantidad(2, factor), "cda"), "3 cdas"],
-  ["1 pizca → 2 pizcas", formatearCantidad(escalarCantidad(1, 2), "pizca"), "2 pizca"],
+  ["1 pizca → 2 pizcas", formatearCantidad(escalarCantidad(1, 2), "pizca"), "2 pizcas"],
   ["macros x3 porciones", escalarMacros({ calorias: 420, perfil: "x", proteinas: 16, carbohidratos: 44, grasas: 19 }, 3).calorias, 1260],
   ["45 min → '45 min'", formatearMinutos(45), "45 min"],
   ["90 min → '1 h 30 min'", formatearMinutos(90), "1 h 30 min"],

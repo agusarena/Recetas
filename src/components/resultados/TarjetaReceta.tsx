@@ -11,6 +11,7 @@ import { formatearMinutos } from "@/lib/porciones";
 import { PlaceholderImagen } from "@/components/PlaceholderImagen";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
+import { BotonListaCompras } from "@/components/resultados/BotonListaCompras";
 import { IconoReloj, IconoSombrero, IconoCesta, IconoDado } from "@/components/iconos";
 
 const ETIQUETA_DIFICULTAD = {
@@ -28,9 +29,12 @@ function BadgeCoincidencia({ resultado, modoIndeciso }: { resultado: ResultadoBu
     );
   }
   if (resultado.nivel === "tenes_todo") {
+    const reemplazos = resultado.reemplazos_usados
+      .map((r) => r.reemplazo ?? r.nombre)
+      .join(", ");
     return (
       <span className="inline-block rounded-md bg-verde-tenue px-2.5 py-1 text-xs font-semibold text-verde">
-        Tenés todo: cocinalo hoy
+        {reemplazos ? `Tenés todo usando: ${reemplazos}` : "Tenés todo: cocinalo hoy"}
       </span>
     );
   }
@@ -108,6 +112,16 @@ export function TarjetaReceta({
             Ver receta
           </Link>
         </div>
+
+        {resultado.faltantes.length > 0 && (
+          <div className="mt-2">
+            <BotonListaCompras
+              items={resultado.faltantes.map((f) => f.nombre)}
+              titulo={receta.titulo}
+              compacto
+            />
+          </div>
+        )}
 
         <div className="mt-3">
           <DisclaimerNutricional compacto />

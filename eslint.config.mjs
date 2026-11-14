@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Service worker plano: usa globals de service worker (self, caches).
+    "public/sw.js",
   ]),
 ]);
 

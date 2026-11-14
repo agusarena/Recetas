@@ -2,8 +2,8 @@
 
 /**
  * Buscador de la pantalla de inicio:
- * - input con autocompletado + chips de la heladera,
- * - restricciones/alergias sincronizadas con localStorage,
+ * - input con autocompletado navegable por teclado (combobox ARIA) + chips,
+ * - restricciones/alergias y heladera sincronizadas con localStorage,
  * - filtro de tiempo máximo,
  * - "Sorprendeme" (Modo Indeciso).
  */
@@ -33,17 +33,29 @@ const CHIP_INACTIVO =
 
 export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
   const router = useRouter();
-  const { preferencias, toggleRestriccion } = usePreferencias();
+  const {
+    preferencias,
+    toggleRestriccion,
+    setHeladera,
+    guardarUltimaBusqueda,
+  } = usePreferencias();
 
   const [consulta, setConsulta] = useState("");
-  const [seleccionados, setSeleccionados] = useState<string[]>([]);
   const [tiempoMaximo, setTiempoMaximo] = useState<number | null>(null);
   const [listaAbierta, setListaAbierta] = useState(false);
+  const [indiceActivo, setIndiceActivo] = useState(-1);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const porId = useMemo(
     () => new Map(ingredientes.map((i) => [i.id, i])),
     [ingredientes],
+  );
+
+  // La heladera vive en las preferencias (localStorage). Filtramos IDs que ya
+  // no existen en el catálogo sin duplicar estado: una sola fuente de verdad.
+  const seleccionados = useMemo(
+    () => preferencias.heladera.filter((id) => porId.has(id)),
+    [preferencias.heladera, porId],
   );
 
   const sugerencias = useMemo(() => {
@@ -55,14 +67,26 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
   }, [consulta, ingredientes, seleccionados]);
 
   function agregar(id: string) {
-    setSeleccionados((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    if (!seleccionados.includes(id)) setHeladera([...seleccionados, id]);
     setConsulta("");
     setListaAbierta(false);
+    setIndiceActivo(-1);
     inputRef.current?.focus();
   }
 
   function quitar(id: string) {
-    setSeleccionados((prev) => prev.filter((s) => s !== id));
+    setHeladera(seleccionados.filter((s) => s !== id));
+  }
+
+  function moverIndice(delta: number) {
+    setListaAbierta(true);
+    if (sugerencias.length === 0) return;
+    setIndiceActivo((prev) => {
+      const siguiente = prev + delta;
+      if (siguiente < 0) return sugerencias.length - 1;
+      if (siguiente >= sugerencias.length) return 0;
+      return siguiente;
+    });
   }
 
   function irAHResultados(modoIndeciso: boolean) {
@@ -73,12 +97,16 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
       modo_indeciso: modoIndeciso,
       semilla: modoIndeciso ? Date.now() : undefined,
     });
+    guardarUltimaBusqueda(query || null);
     router.push(query ? `/resultados?${query}` : "/resultados");
   }
 
   const nombresSeleccionados = seleccionados
     .map((id) => porId.get(id)?.nombre ?? "")
     .filter(Boolean);
+
+  const indiceValido = indiceActivo >= 0 && indiceActivo < sugerencias.length;
+  const idActivo = indiceValido ? `sugerencia-${sugerencias[indiceActivo].id}` : undefined;
 
   return (
     <div className="flex flex-col gap-7">
@@ -111,37 +139,71 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
             id="buscador-ingredientes"
             ref={inputRef}
             type="text"
+            role="combobox"
+            aria-expanded={listaAbierta && sugerencias.length > 0}
+            aria-controls="sugerencias-heladera"
+            aria-autocomplete="list"
+            aria-activedescendant={idActivo}
             value={consulta}
             autoComplete="off"
             placeholder="Ej: huevo, papa, arroz…"
             onChange={(e) => {
               setConsulta(e.target.value);
               setListaAbierta(true);
+              setIndiceActivo(e.target.value.trim() ? 0 : -1);
             }}
             onFocus={() => setListaAbierta(true)}
-            onBlur={() => setListaAbierta(false)}
+            onBlur={() => {
+              setListaAbierta(false);
+              setIndiceActivo(-1);
+            }}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && sugerencias.length > 0) {
+              if (e.key === "ArrowDown") {
                 e.preventDefault();
-                agregar(sugerencias[0].id);
+                moverIndice(1);
               }
-              if (e.key === "Escape") setListaAbierta(false);
+              if (e.key === "ArrowUp") {
+                e.preventDefault();
+                moverIndice(-1);
+              }
+              if (e.key === "Enter") {
+                e.preventDefault();
+                if (listaAbierta && sugerencias.length > 0) {
+                  const elegido = sugerencias[indiceValido ? indiceActivo : 0];
+                  agregar(elegido.id);
+                } else if (seleccionados.length > 0) {
+                  irAHResultados(false);
+                }
+              }
+              if (e.key === "Escape") {
+                setListaAbierta(false);
+                setIndiceActivo(-1);
+              }
             }}
             className="w-full rounded-lg border border-linea bg-papel px-4 py-3.5 text-lg text-tinta outline-none transition-colors placeholder:text-humo focus:border-verde"
           />
           {listaAbierta && sugerencias.length > 0 && (
-            <ul className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-linea bg-papel shadow-lg">
-              {sugerencias.map((i) => (
-                <li key={i.id}>
-                  <button
-                    type="button"
-                    onMouseDown={(e) => e.preventDefault() /* evita blur antes del click */}
-                    onClick={() => agregar(i.id)}
-                    className="block w-full px-4 py-2.5 text-left text-sm text-tinta transition-colors hover:bg-crema"
-                  >
-                    {i.nombre}
-                    <span className="ml-2 text-xs text-humo">{i.categoria}</span>
-                  </button>
+            <ul
+              id="sugerencias-heladera"
+              role="listbox"
+              aria-label="Sugerencias de ingredientes"
+              className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-linea bg-papel shadow-lg"
+            >
+              {sugerencias.map((i, indice) => (
+                <li
+                  key={i.id}
+                  id={`sugerencia-${i.id}`}
+                  role="option"
+                  aria-selected={indice === indiceActivo}
+                  onMouseDown={(e) => e.preventDefault() /* evita blur antes del click */}
+                  onMouseEnter={() => setIndiceActivo(indice)}
+                  onClick={() => agregar(i.id)}
+                  className={`cursor-pointer px-4 py-2.5 text-sm text-tinta transition-colors ${
+                    indice === indiceActivo ? "bg-crema" : "hover:bg-crema"
+                  }`}
+                >
+                  {i.nombre}
+                  <span className="ml-2 text-xs text-humo">{i.categoria}</span>
                 </li>
               ))}
             </ul>
@@ -149,6 +211,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
         </div>
         <p className="mt-2 text-xs text-humo">
           La sal, el agua, el aceite y la pimienta se asumen siempre disponibles.
+          Tu heladera queda guardada en este navegador.
         </p>
       </section>
 

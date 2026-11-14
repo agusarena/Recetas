@@ -19,6 +19,8 @@ import type {
   FiltrosBusqueda,
   IngredienteFaltante,
   RecetaConIngredientes,
+  RecetaIngredienteConDetalle,
+  ReemplazoUsado,
   ResultadoBusqueda,
 } from "@/types";
 
@@ -103,22 +105,57 @@ export function ingredientesObligatorios(receta: RecetaConIngredientes) {
 }
 
 /**
+ * Separa los obligatorios en cubiertos y faltantes.
+ *
+ * Un obligatorio se cubre de dos formas:
+ * 1. el usuario tiene el ingrediente exacto; o
+ * 2. el usuario tiene el ingrediente marcado como reemplazo (`reemplazo_ingrediente_id`).
+ *
+ * Los reemplazos cuentan para el nivel de coincidencia, pero se informan
+ * aparte para que la UI pueda decir "tenés todo usando queso cremoso".
+ */
+function evaluarObligatorios(
+  obligatorios: RecetaIngredienteConDetalle[],
+  ingredientesUsuario: string[],
+): { faltantes: IngredienteFaltante[]; reemplazos_usados: ReemplazoUsado[] } {
+  const pantry = new Set(ingredientesUsuario);
+  const faltantes: IngredienteFaltante[] = [];
+  const reemplazos_usados: ReemplazoUsado[] = [];
+
+  for (const ri of obligatorios) {
+    if (pantry.has(ri.ingrediente_id)) continue;
+
+    const reemplazoId = ri.reemplazo_ingrediente_id;
+    if (reemplazoId && reemplazoId !== ri.ingrediente_id && pantry.has(reemplazoId)) {
+      reemplazos_usados.push({
+        nombre: ri.ingrediente.nombre,
+        reemplazo: ri.reemplazo_sugerido,
+      });
+      continue;
+    }
+
+    faltantes.push({
+      nombre: ri.ingrediente.nombre,
+      reemplazo_sugerido: ri.reemplazo_sugerido,
+    });
+  }
+
+  return { faltantes, reemplazos_usados };
+}
+
+/**
  * Evalúa una receta contra el pantry del usuario.
  * Devuelve `null` si faltan más de 2 ingredientes obligatorios.
  */
 export function evaluarCoincidencia(
   receta: RecetaConIngredientes,
   ingredientesUsuario: string[],
-): Pick<ResultadoBusqueda, "nivel" | "coincidentes" | "obligatorios_totales" | "faltantes"> | null {
+): Pick<
+  ResultadoBusqueda,
+  "nivel" | "coincidentes" | "obligatorios_totales" | "faltantes" | "reemplazos_usados"
+> | null {
   const obligatorios = ingredientesObligatorios(receta);
-  const pantry = new Set(ingredientesUsuario);
-
-  const faltantes: IngredienteFaltante[] = obligatorios
-    .filter((ri) => !pantry.has(ri.ingrediente_id))
-    .map((ri) => ({
-      nombre: ri.ingrediente.nombre,
-      reemplazo_sugerido: ri.reemplazo_sugerido,
-    }));
+  const { faltantes, reemplazos_usados } = evaluarObligatorios(obligatorios, ingredientesUsuario);
 
   if (faltantes.length > MAX_FALTANTES) return null;
 
@@ -134,6 +171,7 @@ export function evaluarCoincidencia(
     coincidentes: obligatorios.length - faltantes.length,
     obligatorios_totales: obligatorios.length,
     faltantes,
+    reemplazos_usados,
   };
 }
 
@@ -235,18 +273,18 @@ function sugerirIndeciso(aptas: RecetaConIngredientes[], filtros: FiltrosBusqued
     if (evaluacion) return { receta, ...evaluacion };
 
     // Faltan más de 2: se reporta honestamente (nivel 3, lista truncada).
-    const pantry = new Set(filtros.ingredientes);
     const obligatorios = ingredientesObligatorios(receta);
-    const faltanTodos = obligatorios.filter((ri) => !pantry.has(ri.ingrediente_id));
+    const { faltantes, reemplazos_usados } = evaluarObligatorios(
+      obligatorios,
+      filtros.ingredientes,
+    );
     return {
       receta,
       nivel: "falta_dos" as const,
-      coincidentes: obligatorios.length - faltanTodos.length,
+      coincidentes: obligatorios.length - faltantes.length,
       obligatorios_totales: obligatorios.length,
-      faltantes: faltanTodos.slice(0, MAX_FALTANTES).map((ri) => ({
-        nombre: ri.ingrediente.nombre,
-        reemplazo_sugerido: ri.reemplazo_sugerido,
-      })),
+      faltantes: faltantes.slice(0, MAX_FALTANTES),
+      reemplazos_usados,
     };
   });
 }

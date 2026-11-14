@@ -127,6 +127,19 @@ export function IconoPausa(props: Props) {
   );
 }
 
+export function IconoOlla(props: Props) {
+  return (
+    <Base {...props}>
+      <path d="M4 9h16" />
+      <path d="M6 9v8a3 3 0 0 0 3 3h6a3 3 0 0 0 3-3V9" />
+      <path d="M9.5 5c0-.9.7-1.1 1-1.9" />
+      <path d="M14 5.5c0-.7.5-.9.8-1.5" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+    </Base>
+  );
+}
+
 export function IconoChispa(props: Props) {
   return (
     <Base {...props}>

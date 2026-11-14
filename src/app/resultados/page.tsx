@@ -13,6 +13,7 @@ import { obtenerCatalogo } from "@/lib/datos";
 import { supabaseConfigurado } from "@/lib/supabase";
 import { validarFiltros } from "@/lib/filtros";
 import { TarjetaReceta } from "@/components/resultados/TarjetaReceta";
+import { BotonListaCompras } from "@/components/resultados/BotonListaCompras";
 import { AvisoConfiguracion } from "@/components/AvisoConfiguracion";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
 import { IconoFlechaIzquierda } from "@/components/iconos";
@@ -94,6 +95,9 @@ function ListaResultados({
     .map((r) => ETIQUETA_RESTRICCION.get(r) ?? r)
     .join(", ");
 
+  const faltantesUnicos = [...new Set(resultados.flatMap((r) => r.faltantes.map((f) => f.nombre)))]
+    .sort((a, b) => a.localeCompare(b, "es"));
+
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-12 pt-8">
       <header className="mb-6">
@@ -114,6 +118,14 @@ function ListaResultados({
           {restricciones && `, respetando: ${restricciones}`}
           {filtros.tiempo_maximo !== null && `, hasta ${filtros.tiempo_maximo} min`}
         </p>
+        {faltantesUnicos.length > 0 && (
+          <div className="mt-3">
+            <BotonListaCompras
+              items={faltantesUnicos}
+              titulo="Todo lo que falta para estas recetas"
+            />
+          </div>
+        )}
       </header>
 
       {resultados.length === 0 ? (

@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Fraunces, Instrument_Sans } from "next/font/google";
 import { TimerProvider } from "@/components/timers/TimerProvider";
 import { BarraTimers } from "@/components/timers/BarraTimers";
+import { SitioHeader } from "@/components/SitioHeader";
+import { ServiceWorkerRegistro } from "@/components/ServiceWorkerRegistro";
 import "./globals.css";
 
 /** Títulos y números destacados: serif editorial con carácter propio. */
@@ -24,6 +26,16 @@ export const metadata: Metadata = {
   },
   description:
     "Decinos qué tenés en la heladera y te mostramos qué cocinar: recetas simples para principiantes, con cronómetros y reemplazos sugeridos.",
+  appleWebApp: {
+    capable: true,
+    title: "Qué cocino",
+    statusBarStyle: "default",
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#1e5c45",
+  colorScheme: "light",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
@@ -34,9 +46,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     >
       <body className="min-h-full flex flex-col">
         <TimerProvider>
+          <SitioHeader />
           <div className="flex-1">{children}</div>
           <BarraTimers />
         </TimerProvider>
+        <ServiceWorkerRegistro />
       </body>
     </html>
   );

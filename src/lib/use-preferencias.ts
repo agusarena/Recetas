@@ -11,33 +11,79 @@ import {
 
 export function usePreferencias() {
   const [preferencias, setPreferencias] = useState<Preferencias>(PREFERENCIAS_DEFAULT);
+  const [hidratado, setHidratado] = useState(false);
 
   // Sincroniza con localStorage al montar y con otras pestañas (evento storage).
-  useEffect(() => suscribirsePreferencias(setPreferencias), []);
+  useEffect(
+    () =>
+      suscribirsePreferencias((nuevas) => {
+        setPreferencias(nuevas);
+        setHidratado(true);
+      }),
+    [],
+  );
+
+  /** Aplica un cambio y lo persiste. */
+  const actualizar = useCallback(
+    (cambio: (prev: Preferencias) => Preferencias) => {
+      setPreferencias((prev) => {
+        const nuevas = cambio(prev);
+        guardarPreferencias(nuevas);
+        return nuevas;
+      });
+    },
+    [],
+  );
 
   /** Agrega o quita una restricción/alergia y persiste. */
-  const toggleRestriccion = useCallback((valor: EtiquetaDieta) => {
-    setPreferencias((prev) => {
-      const restricciones = prev.restricciones.includes(valor)
-        ? prev.restricciones.filter((r) => r !== valor)
-        : [...prev.restricciones, valor];
-      const nuevas = { ...prev, restricciones };
-      guardarPreferencias(nuevas);
-      return nuevas;
-    });
-  }, []);
+  const toggleRestriccion = useCallback(
+    (valor: EtiquetaDieta) => {
+      actualizar((prev) => {
+        const restricciones = prev.restricciones.includes(valor)
+          ? prev.restricciones.filter((r) => r !== valor)
+          : [...prev.restricciones, valor];
+        return { ...prev, restricciones };
+      });
+    },
+    [actualizar],
+  );
 
   /** Marca o desmarca una receta como favorita y persiste. */
-  const toggleFavorito = useCallback((recetaId: string) => {
-    setPreferencias((prev) => {
-      const favoritos = prev.favoritos.includes(recetaId)
-        ? prev.favoritos.filter((f) => f !== recetaId)
-        : [...prev.favoritos, recetaId];
-      const nuevas = { ...prev, favoritos };
-      guardarPreferencias(nuevas);
-      return nuevas;
-    });
-  }, []);
+  const toggleFavorito = useCallback(
+    (recetaId: string) => {
+      actualizar((prev) => {
+        const favoritos = prev.favoritos.includes(recetaId)
+          ? prev.favoritos.filter((f) => f !== recetaId)
+          : [...prev.favoritos, recetaId];
+        return { ...prev, favoritos };
+      });
+    },
+    [actualizar],
+  );
 
-  return { preferencias, toggleRestriccion, toggleFavorito };
+  /** Reemplaza la heladera completa (chips del buscador). */
+  const setHeladera = useCallback(
+    (heladera: string[]) => {
+      actualizar((prev) => ({ ...prev, heladera }));
+    },
+    [actualizar],
+  );
+
+  /** Guarda la query de la última búsqueda para volver desde una receta. */
+  const guardarUltimaBusqueda = useCallback(
+    (query: string | null) => {
+      actualizar((prev) => ({ ...prev, ultima_busqueda: query }));
+    },
+    [actualizar],
+  );
+
+  return {
+    preferencias,
+    /** false hasta la primera lectura de localStorage (evita parpadeos). */
+    hidratado,
+    toggleRestriccion,
+    toggleFavorito,
+    setHeladera,
+    guardarUltimaBusqueda,
+  };
 }

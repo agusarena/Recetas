@@ -17,6 +17,7 @@ import {
   formatearTiempo,
 } from "@/lib/porciones";
 import { useTimers } from "@/components/timers/TimerProvider";
+import { usePreferencias } from "@/lib/use-preferencias";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { PlaceholderImagen } from "@/components/PlaceholderImagen";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
@@ -31,6 +32,10 @@ const PORCION_MAXIMA = 12;
 
 export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
   const { iniciar } = useTimers();
+  const { preferencias, hidratado } = usePreferencias();
+  const ultimaBusqueda = hidratado ? preferencias.ultima_busqueda : null;
+  const volverHref = ultimaBusqueda ? `/resultados?${ultimaBusqueda}` : "/";
+  const volverTexto = ultimaBusqueda ? "Volver a resultados" : "Volver a la heladera";
   const [porciones, setPorciones] = useState(receta.porciones_base);
   const [hechoIngredientes, setHechoIngredientes] = useState<Set<string>>(new Set());
   const [hechoPasos, setHechoPasos] = useState<Set<number>>(new Set());
@@ -67,11 +72,11 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
       {/* ── Encabezado ─────────────────────────────────────────────────── */}
       <header className="mb-6">
         <Link
-          href="/"
+          href={volverHref}
           className="inline-flex items-center gap-1.5 text-sm font-semibold text-verde hover:underline"
         >
           <IconoFlechaIzquierda className="h-4 w-4" />
-          Volver a la heladera
+          {volverTexto}
         </Link>
 
         <div className="mt-4 flex gap-4">

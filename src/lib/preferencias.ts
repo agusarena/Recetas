@@ -22,6 +22,8 @@ export const PREFERENCIAS_DEFAULT: Preferencias = {
   version: PREFERENCIAS_VERSION,
   restricciones: [],
   favoritos: [],
+  heladera: [],
+  ultima_busqueda: null,
 };
 
 /** Convierte un valor desconocido en Preferencias válidas o en el default. */
@@ -35,11 +37,20 @@ export function validarPreferencias(valor: unknown): Preferencias {
   const favoritos = Array.isArray(datos.favoritos)
     ? datos.favoritos.filter((f): f is string => typeof f === "string")
     : [];
+  const heladera = Array.isArray(datos.heladera)
+    ? datos.heladera.filter((h): h is string => typeof h === "string")
+    : [];
+  const ultima_busqueda =
+    typeof datos.ultima_busqueda === "string" && datos.ultima_busqueda.trim().length > 0
+      ? datos.ultima_busqueda
+      : null;
 
   return {
     version: PREFERENCIAS_VERSION,
     restricciones: [...new Set(restricciones)],
     favoritos: [...new Set(favoritos)],
+    heladera: [...new Set(heladera)],
+    ultima_busqueda,
   };
 }
 
