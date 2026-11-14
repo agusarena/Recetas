@@ -68,11 +68,19 @@ export interface Macros {
   grasas: number;
 }
 
+/**
+ * Perfil de sabor de una receta. Sirve para no mezclar un postre entre las
+ * primeras opciones cuando el usuario marcó ingredientes salados, y para el
+ * filtro "Salado / Dulce" de la pantalla de resultados.
+ */
+export type CategoriaReceta = "salado" | "dulce";
+
 /** Tabla `recetas` (sin relación con ingredientes). */
 export interface Receta {
   id: string;
   titulo: string;
   descripcion_corta: string;
+  categoria: CategoriaReceta;
   tiempo_minutos: number;
   dificultad: Dificultad;
   porciones_base: number;
@@ -131,9 +139,9 @@ export interface ResumenReceta {
 /**
  * Indicador de coincidencia que se muestra en la tarjeta:
  * - `tenes_todo`: 100 % de ingredientes obligatorios → "Cocinalo ya".
- * - `falta_uno` / `falta_dos`: cuántos obligatorios faltan.
+ * - `falta_uno` / `falta_dos` / `falta_varios`: cuántos obligatorios faltan.
  */
-export type NivelCoincidencia = "tenes_todo" | "falta_uno" | "falta_dos";
+export type NivelCoincidencia = "tenes_todo" | "falta_uno" | "falta_dos" | "falta_varios";
 
 /** Ingrediente faltante con su reemplazo sugerido, para la tarjeta. */
 export interface IngredienteFaltante {
@@ -157,6 +165,8 @@ export interface FiltrosBusqueda {
   restricciones: EtiquetaDieta[];
   /** Tiempo máximo de preparación en minutos; null = sin límite. */
   tiempo_maximo: number | null;
+  /** Perfil de sabor pedido; undefined/null = todos (salados y dulces). */
+  categoria?: CategoriaReceta | null;
   /** "Sorprendeme": 3 recetas rápidas y fáciles, sin requerir ingredientes. */
   modo_indeciso?: boolean;
   /** Semilla para la elección aleatoria reproducible del Modo Indeciso. */

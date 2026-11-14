@@ -2,12 +2,14 @@
  * Validación de filtros de búsqueda entrantes (desde `searchParams` de la
  * URL o desde el endpoint /api/buscar). Nunca confiar en la query cruda.
  */
-import type { EtiquetaDieta, FiltrosBusqueda } from "@/types";
+import type { CategoriaReceta, EtiquetaDieta, FiltrosBusqueda } from "@/types";
 import { RESTRICCIONES } from "@/lib/motor-busqueda";
 
 const RESTRICCIONES_VALIDAS = new Set(
   RESTRICCIONES.map((r) => r.valor),
 ) as Set<EtiquetaDieta>;
+
+const CATEGORIAS_VALIDAS = new Set<CategoriaReceta>(["salado", "dulce"]);
 
 /** Techo del filtro de tiempo para evitar valores absurdos (ej. 999999). */
 const TIEMPO_MAXIMO_ABSOLUTO = 240;
@@ -34,7 +36,12 @@ export function validarFiltros(params: URLSearchParams): FiltrosBusqueda {
   const semillaCruda = Number.parseInt(params.get("semilla") ?? "", 10);
   const semilla = Number.isFinite(semillaCruda) ? semillaCruda : 0;
 
-  return { ingredientes, restricciones, tiempo_maximo, modo_indeciso, semilla };
+  const categoriaParam = params.get("categoria");
+  const categoria = CATEGORIAS_VALIDAS.has(categoriaParam as CategoriaReceta)
+    ? (categoriaParam as CategoriaReceta)
+    : null;
+
+  return { ingredientes, restricciones, tiempo_maximo, categoria, modo_indeciso, semilla };
 }
 
 /** Serializa filtros a query string para navegar a /resultados. */
@@ -44,6 +51,7 @@ export function filtrosAQuery(filtros: FiltrosBusqueda): string {
   if (filtros.restricciones.length > 0)
     params.set("restricciones", filtros.restricciones.join(","));
   if (filtros.tiempo_maximo !== null) params.set("tiempo", String(filtros.tiempo_maximo));
+  if (filtros.categoria) params.set("categoria", filtros.categoria);
   if (filtros.modo_indeciso) {
     params.set("modo", "indeciso");
     params.set("semilla", String(filtros.semilla ?? 0));

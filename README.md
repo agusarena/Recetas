@@ -26,7 +26,8 @@ npm run dev
    1. `supabase/migrations/0001_init.sql` — tablas, índices y RLS.
    2. `supabase/migrations/0002_seguridad_e_indices.sql` — revoke de escrituras.
    3. `supabase/migrations/0003_reemplazos.sql` — reemplazos verificables por el motor.
-   4. `supabase/seed.sql` — 54 ingredientes y 37 recetas de ejemplo.
+   4. `supabase/migrations/0004_categoria.sql` — perfil de sabor (salado/dulce).
+   4. `supabase/seed.sql` — 54 ingredientes y 45 recetas de ejemplo.
 3. Copiá `.env.example` a `.env.local` y completá:
    - `NEXT_PUBLIC_SUPABASE_URL` (Project Settings → API → URL)
    - `NEXT_PUBLIC_SUPABASE_ANON_KEY` (Project Settings → API → anon public)
@@ -116,21 +117,27 @@ public/
 scripts/                      # Cobertura, parser del seed, smokes, iconos
 tests/                        # Vitest: motor, porciones, timers, filtros, seed, prefs
 supabase/
-├── migrations/               # 0001 init, 0002 seguridad, 0003 reemplazos
+├── migrations/               # 0001 init, 0002 seguridad, 0003 reemplazos, 0004 categoria
 └── seed.sql                  # Contenido inicial
 ```
 
 ### Reglas del motor de búsqueda
 
 1. **Filtro estricto de seguridad**: descarta recetas que no cumplan las
-   restricciones (por etiqueta **y** por alérgenos en ingredientes) o superen
-   el tiempo máximo.
+   restricciones (por etiqueta **y** por alérgenos en ingredientes), superen
+   el tiempo máximo o no entren en el perfil de sabor pedido.
 2. **Coincidencia**: solo cuentan ingredientes obligatorios (se ignoran
    `es_basico` y `es_opcional`). Un obligatorio también se cubre si el usuario
    tiene su `reemplazo_ingrediente_id`.
-3. **Ranking**: Nivel 1 "Tenés todo" (desempata menor tiempo → menor
-   dificultad) → Nivel 2 "Te falta 1" (con reemplazo sugerido) → Nivel 3
-   "Te faltan 2" (solo si los niveles 1 y 2 devuelven menos de 3 resultados).
+3. **Ranking por relevancia**: primero las recetas que usan lo que marcaste —
+   de la más cercana a la más lejana, sin tope de faltantes (un postre con
+   2 faltantes ajenos no se cuela antes que un guiso con tus ingredientes) —
+   y después hasta 3 recetas ajenas a tu heladera ("otras ideas"). A igual
+   cercanía, salado antes que dulce.
+4. **Perfil de sabor**: cada receta es `salado` o `dulce`; la pantalla de
+   resultados permite filtrar con los chips Todo / Salado / Dulce. Marcar
+   ingredientes salados (choclo, atún) no devuelve postres entre las primeras
+   opciones.
 
 ### Escalado futuro (previsto en el diseño)
 

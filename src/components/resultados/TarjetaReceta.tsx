@@ -40,9 +40,10 @@ function BadgeCoincidencia({ resultado, modoIndeciso }: { resultado: ResultadoBu
   }
   const faltantes = resultado.faltantes.map((f) => f.nombre).join(", ");
   const reemplazo = resultado.faltantes.find((f) => f.reemplazo_sugerido)?.reemplazo_sugerido;
+  const cuantos = resultado.faltantes.length;
   return (
     <span className="inline-block rounded-md bg-tomate-tenue px-2.5 py-1 text-xs font-semibold text-tomate-oscuro">
-      {resultado.nivel === "falta_uno" ? "Te falta 1" : "Te faltan 2"}: {faltantes}
+      {cuantos === 1 ? "Te falta 1" : `Te faltan ${cuantos}`}: {faltantes}
       {reemplazo ? ` (sirve: ${reemplazo})` : ""}
     </span>
   );

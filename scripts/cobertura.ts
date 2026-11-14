@@ -87,11 +87,11 @@ let pocos = 0;
 let suficientes = 0;
 
 console.log("\nCobertura de heladeras simuladas");
-console.log("─────────────────────────────────────────────────────────────────────");
+console.log("───────────────────────────────────────────────────────────────────────────────");
 console.log(
-  `${pad("Heladera", 18)} ${pad("Todo", 6)} ${pad("Falta 1", 8)} ${pad("Falta 2", 8)} ${pad("Útiles", 8)}`,
+  `${pad("Heladera", 18)} ${pad("Todo", 6)} ${pad("Falta 1", 8)} ${pad("Falta 2", 8)} ${pad("Falta 3+", 9)} ${pad("Útiles", 8)}`,
 );
-console.log("─────────────────────────────────────────────────────────────────────");
+console.log("───────────────────────────────────────────────────────────────────────────────");
 
 for (const heladera of HELADERAS) {
   const resultados = buscarRecetas(semilla.recetas, {
@@ -99,7 +99,7 @@ for (const heladera of HELADERAS) {
     restricciones: heladera.restricciones ?? [],
     tiempo_maximo: null,
   });
-  const cuenta = { tenes_todo: 0, falta_uno: 0, falta_dos: 0 };
+  const cuenta = { tenes_todo: 0, falta_uno: 0, falta_dos: 0, falta_varios: 0 };
   for (const resultado of resultados) cuenta[resultado.nivel]++;
 
   // "Útiles" = recetas que podés cocinar ya o comprando una sola cosa.
@@ -115,11 +115,14 @@ for (const heladera of HELADERAS) {
     `${pad(heladera.nombre, 18)} ${pad(String(cuenta.tenes_todo), 6)} ${pad(
       String(cuenta.falta_uno),
       8,
-    )} ${pad(String(cuenta.falta_dos), 8)} ${pad(String(utiles), 8)}${marca}`,
+    )} ${pad(String(cuenta.falta_dos), 8)} ${pad(String(cuenta.falta_varios), 9)} ${pad(
+      String(utiles),
+      8,
+    )}${marca}`,
   );
 }
 
-console.log("─────────────────────────────────────────────────────────────────────");
+console.log("───────────────────────────────────────────────────────────────────────────────");
 const porcentaje = Math.round((suficientes / HELADERAS.length) * 100);
 console.log(
   `${suficientes}/${HELADERAS.length} heladeras con 3+ recetas útiles (${porcentaje} %), ` +

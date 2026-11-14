@@ -20,6 +20,26 @@ import { IconoFlechaIzquierda } from "@/components/iconos";
 
 const ETIQUETA_RESTRICCION = new Map(RESTRICCIONES.map((r) => [r.valor, r.etiqueta]));
 
+const CHIP_BASE = "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors";
+const CHIP_ACTIVO = "border-verde bg-verde text-papel";
+const CHIP_INACTIVO =
+  "border-linea bg-papel text-tinta hover:border-verde hover:text-verde";
+
+const OPCIONES_CATEGORIA = [
+  { valor: null, etiqueta: "Todo" },
+  { valor: "salado", etiqueta: "Salado" },
+  { valor: "dulce", etiqueta: "Dulce" },
+] as const;
+
+/** Misma búsqueda, cambiando solo el perfil de sabor. */
+function urlConCategoria(params: URLSearchParams, valor: string | null): string {
+  const copia = new URLSearchParams(params);
+  if (valor) copia.set("categoria", valor);
+  else copia.delete("categoria");
+  const query = copia.toString();
+  return query ? `/resultados?${query}` : "/resultados";
+}
+
 export default function Page(props: PageProps<"/resultados">) {
   return (
     <Suspense fallback={<Esqueleto />}>
@@ -81,15 +101,17 @@ async function Resultados({
   }
 
   const resultados = buscarRecetas(estado.datos, filtros);
-  return <ListaResultados resultados={resultados} filtros={filtros} />;
+  return <ListaResultados resultados={resultados} filtros={filtros} params={params} />;
 }
 
 function ListaResultados({
   resultados,
   filtros,
+  params,
 }: {
   resultados: ResultadoBusqueda[];
   filtros: ReturnType<typeof validarFiltros>;
+  params: URLSearchParams;
 }) {
   const restricciones = filtros.restricciones
     .map((r) => ETIQUETA_RESTRICCION.get(r) ?? r)
@@ -118,6 +140,21 @@ function ListaResultados({
           {restricciones && `, respetando: ${restricciones}`}
           {filtros.tiempo_maximo !== null && `, hasta ${filtros.tiempo_maximo} min`}
         </p>
+        <nav aria-label="Perfil de sabor" className="mt-3 flex flex-wrap gap-2">
+          {OPCIONES_CATEGORIA.map(({ valor, etiqueta }) => {
+            const activo = (filtros.categoria ?? null) === valor;
+            return (
+              <Link
+                key={etiqueta}
+                href={urlConCategoria(params, valor)}
+                aria-current={activo ? "true" : undefined}
+                className={`${CHIP_BASE} ${activo ? CHIP_ACTIVO : CHIP_INACTIVO}`}
+              >
+                {etiqueta}
+              </Link>
+            );
+          })}
+        </nav>
         {faltantesUnicos.length > 0 && (
           <div className="mt-3">
             <BotonListaCompras

@@ -31,6 +31,13 @@ describe("validación de filtros", () => {
     expect(filtros.tiempo_maximo).toBeNull();
   });
 
+  it("valida el perfil de sabor salado/dulce", () => {
+    expect(validarFiltros(new URLSearchParams()).categoria).toBeNull();
+    expect(validarFiltros(new URLSearchParams({ categoria: "dulce" })).categoria).toBe("dulce");
+    expect(validarFiltros(new URLSearchParams({ categoria: "salado" })).categoria).toBe("salado");
+    expect(validarFiltros(new URLSearchParams({ categoria: "amargo" })).categoria).toBeNull();
+  });
+
   it("serializa solo los filtros presentes", () => {
     expect(
       filtrosAQuery({
@@ -40,6 +47,16 @@ describe("validación de filtros", () => {
         modo_indeciso: false,
       }),
     ).toBe("ingredientes=huevo%2Cpapa&restricciones=sin_tacc&tiempo=30");
+
+    expect(
+      filtrosAQuery({
+        ingredientes: ["banana"],
+        restricciones: [],
+        tiempo_maximo: null,
+        categoria: "dulce",
+        modo_indeciso: false,
+      }),
+    ).toBe("ingredientes=banana&categoria=dulce");
 
     expect(
       filtrosAQuery({

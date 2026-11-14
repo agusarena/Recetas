@@ -6,18 +6,23 @@
  * o una futura app móvil / capa de IA sin cambios.
  *
  * Reglas (en orden):
- *  1. Filtro estricto de seguridad: descarta recetas que no cumplen las
- *     restricciones/alergias o que superan el tiempo máximo.
+ *  1. Filtro estricto de seguridad: descarta recetas que no cumplan las
+ *     restricciones/alergias, que superen el tiempo máximo o que no entren
+ *     en el perfil de sabor pedido (salado/dulce).
  *  2. Cálculo de coincidencia sobre ingredientes OBLIGATORIOS
- *     (se ignoran `es_basico` y `es_opcional`).
- *  3. Ranking por niveles: 100 % → falta 1 → falta 2 (solo si 1+2 < 3).
+ *     (se ignoran es_basico y es_opcional).
+ *  3. Ranking por RELEVANCIA: primero las recetas que usan lo que marcaste
+ *     (aunque les falten 3 o más), salados antes que dulces, y al final
+ *     hasta MAX_OTRAS recetas ajenas a tu heladera.
  */
 import type {
   Alergeno,
+  CategoriaReceta,
   Dificultad,
   EtiquetaDieta,
   FiltrosBusqueda,
   IngredienteFaltante,
+  NivelCoincidencia,
   RecetaConIngredientes,
   RecetaIngredienteConDetalle,
   ReemplazoUsado,
@@ -50,11 +55,8 @@ const ORDEN_DIFICULTAD: Record<Dificultad, number> = {
   facil: 1,
 };
 
-/** Máximo de faltantes tolerados para mostrar una receta (Nivel 3). */
-const MAX_FALTANTES = 2;
-
 /** Cantidad mínima de resultados objetivo antes de bajar al Nivel 3. */
-const MIN_RESULTADOS = 3;
+const MAX_OTRAS = 3;
 
 /** Cantidad de sugerencias del Modo Indeciso. */
 export const SUGERENCIAS_INDECISO = 3;
@@ -145,7 +147,9 @@ function evaluarObligatorios(
 
 /**
  * Evalúa una receta contra el pantry del usuario.
- * Devuelve `null` si faltan más de 2 ingredientes obligatorios.
+ * Siempre devuelve resultado: con 3 o más faltantes el nivel es `falta_varios`
+ * (la lista de faltantes queda completa, que es lo que muestra la lista de
+ * compras).
  */
 export function evaluarCoincidencia(
   receta: RecetaConIngredientes,
@@ -153,18 +157,18 @@ export function evaluarCoincidencia(
 ): Pick<
   ResultadoBusqueda,
   "nivel" | "coincidentes" | "obligatorios_totales" | "faltantes" | "reemplazos_usados"
-> | null {
+> {
   const obligatorios = ingredientesObligatorios(receta);
   const { faltantes, reemplazos_usados } = evaluarObligatorios(obligatorios, ingredientesUsuario);
-
-  if (faltantes.length > MAX_FALTANTES) return null;
 
   const nivel =
     faltantes.length === 0
       ? ("tenes_todo" as const)
       : faltantes.length === 1
         ? ("falta_uno" as const)
-        : ("falta_dos" as const);
+        : faltantes.length === 2
+          ? ("falta_dos" as const)
+          : ("falta_varios" as const);
 
   return {
     nivel,
@@ -188,15 +192,56 @@ function compararPorEsfuerzo(a: RecetaConIngredientes, b: RecetaConIngredientes)
   );
 }
 
-/** Ordena resultados de un mismo nivel por esfuerzo creciente. */
-function ordenarResultados(resultados: ResultadoBusqueda[]): ResultadoBusqueda[] {
-  return resultados.sort((a, b) => compararPorEsfuerzo(a.receta, b.receta));
+/** Rango de cercanía de cada nivel: menor = te queda menos para cocinarla. */
+const RANGO_NIVEL: Record<NivelCoincidencia, number> = {
+  tenes_todo: 0,
+  falta_uno: 1,
+  falta_dos: 2,
+  falta_varios: 3,
+};
+
+/**
+ * Orden global del ranking (ver `buscarRecetas`):
+ *  1. Usa tus ingredientes antes que una receta ajena a tu heladera.
+ *  2. Dentro de cada grupo: lo más cercano a cocinable primero.
+ *  3. A igual cercanía, salado antes que dulce (así choclo y atún no
+ *     compiten contra un postre), y después menor esfuerzo.
+ */
+function compararResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number {
+  const relevanteA = a.coincidentes > 0 ? 0 : 1;
+  const relevanteB = b.coincidentes > 0 ? 0 : 1;
+  if (relevanteA !== relevanteB) return relevanteA - relevanteB;
+
+  if (a.nivel !== b.nivel) return RANGO_NIVEL[a.nivel] - RANGO_NIVEL[b.nivel];
+
+  const dulceA = a.receta.categoria === "dulce" ? 1 : 0;
+  const dulceB = b.receta.categoria === "dulce" ? 1 : 0;
+  if (dulceA !== dulceB) return dulceA - dulceB;
+
+  return compararPorEsfuerzo(a.receta, b.receta);
 }
 
 /**
- * Motor principal. Aplica las 3 reglas de negocio y devuelve los resultados
- * ordenados: primero "Tenés todo", luego "Te falta 1" y, solo si con esos
- * niveles no alcanzan los 3 resultados, "Te falta 2".
+ * true si la receta entra en el perfil de sabor pedido (salado/dulce).
+ * null = sin filtro: entran ambos.
+ */
+function cumpleCategoria(
+  receta: RecetaConIngredientes,
+  categoria: CategoriaReceta | null | undefined,
+): boolean {
+  return !categoria || receta.categoria === categoria;
+}
+
+/**
+ * Motor principal. Aplica las reglas de negocio y devuelve los resultados
+ * ordenados por relevancia, no solo por cercanía:
+ *
+ *  1. Recetas que usan lo que marcaste (con reemplazo incluido), de la más
+ *     cercana a la más lejana — aunque les falten 3 o más ingredientes.
+ *  2. Recetas dulces después de las saladas en cada grupo.
+ *  3. Al final, hasta MAX_OTRAS recetas ajenas a tu heladera ("otras
+ *     ideas"); si no hay ninguna receta con tus ingredientes, se muestran
+ *     las ajenas más cercanas sin tope para no dejar la pantalla vacía.
  */
 export function buscarRecetas(
   catalogo: RecetaConIngredientes[],
@@ -205,30 +250,29 @@ export function buscarRecetas(
   const aptas = catalogo.filter(
     (receta) =>
       cumpleRestricciones(receta, filtros.restricciones) &&
-      cumpleTiempo(receta, filtros.tiempo_maximo),
+      cumpleTiempo(receta, filtros.tiempo_maximo) &&
+      cumpleCategoria(receta, filtros.categoria),
   );
 
   if (filtros.modo_indeciso) return sugerirIndeciso(aptas, filtros);
 
-  const porNivel: Record<string, ResultadoBusqueda[]> = {
-    tenes_todo: [],
-    falta_uno: [],
-    falta_dos: [],
-  };
+  const evaluadas = aptas.map((receta) => ({
+    receta,
+    ...evaluarCoincidencia(receta, filtros.ingredientes),
+  }));
 
-  for (const receta of aptas) {
-    const evaluacion = evaluarCoincidencia(receta, filtros.ingredientes);
-    if (evaluacion) porNivel[evaluacion.nivel].push({ receta, ...evaluacion });
-  }
+  // Falta 3+ sin usar tus ingredientes = ruido: no entra nunca.
+  const relevantes = evaluadas.filter((r) => r.coincidentes > 0);
+  const ajenas = evaluadas
+    .filter((r) => r.coincidentes === 0 && r.nivel !== "falta_varios")
+    .sort(compararResultados);
 
-  ordenarResultados(porNivel.tenes_todo);
-  ordenarResultados(porNivel.falta_uno);
-  ordenarResultados(porNivel.falta_dos);
+  if (relevantes.length === 0) return ajenas;
 
-  const resultado = [...porNivel.tenes_todo, ...porNivel.falta_uno];
-  if (resultado.length < MIN_RESULTADOS) resultado.push(...porNivel.falta_dos);
-
-  return resultado;
+  return [
+    ...relevantes.sort(compararResultados),
+    ...ajenas.slice(0, MAX_OTRAS),
+  ];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -268,23 +312,8 @@ function sugerirIndeciso(aptas: RecetaConIngredientes[], filtros: FiltrosBusqued
   }));
   ponderadas.sort((a, b) => b.peso - a.peso);
 
-  return ponderadas.slice(0, SUGERENCIAS_INDECISO).map(({ receta }) => {
-    const evaluacion = evaluarCoincidencia(receta, filtros.ingredientes);
-    if (evaluacion) return { receta, ...evaluacion };
-
-    // Faltan más de 2: se reporta honestamente (nivel 3, lista truncada).
-    const obligatorios = ingredientesObligatorios(receta);
-    const { faltantes, reemplazos_usados } = evaluarObligatorios(
-      obligatorios,
-      filtros.ingredientes,
-    );
-    return {
-      receta,
-      nivel: "falta_dos" as const,
-      coincidentes: obligatorios.length - faltantes.length,
-      obligatorios_totales: obligatorios.length,
-      faltantes: faltantes.slice(0, MAX_FALTANTES),
-      reemplazos_usados,
-    };
-  });
+  return ponderadas.slice(0, SUGERENCIAS_INDECISO).map(({ receta }) => ({
+    receta,
+    ...evaluarCoincidencia(receta, filtros.ingredientes),
+  }));
 }

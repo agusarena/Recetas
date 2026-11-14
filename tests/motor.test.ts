@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type {
   Alergeno,
+  CategoriaReceta,
   Dificultad,
   EtiquetaDieta,
   Ingrediente,
@@ -57,6 +58,7 @@ function receta(
   opciones: {
     tiempo?: number;
     dificultad?: Dificultad;
+    categoria?: CategoriaReceta;
     etiquetas?: EtiquetaDieta[];
     ingredientes?: RecetaIngredienteConDetalle[];
   } = {},
@@ -65,6 +67,7 @@ function receta(
     id,
     titulo: id,
     descripcion_corta: "",
+    categoria: opciones.categoria ?? "salado",
     tiempo_minutos: opciones.tiempo ?? 10,
     dificultad: opciones.dificultad ?? "facil",
     porciones_base: 2,
@@ -197,16 +200,69 @@ describe("motor de búsqueda", () => {
     expect(resultados.findIndex((r) => r.receta.id === "tortilla")).toBeGreaterThan(0);
   });
 
-  it("solo muestra nivel 3 si los niveles 1 y 2 no alcanzan", () => {
+  it("rankea por relevancia: usan tus ingredientes antes que las ajenas", () => {
     const conMuchos = buscarRecetas(
       CATALOGO,
       filtros(["papa", "huevo", "cebolla", "queso", "atun", "tomate"]),
     );
-    expect(conMuchos.length).toBeGreaterThanOrEqual(3);
-    expect(conMuchos.some((r) => r.nivel === "falta_dos")).toBe(false);
+    // Todas usan algo del pantry (guiso usa tomate, aunque le falten 4).
+    expect(conMuchos.length).toBe(5);
+    // Niveles cercanos primero: tenes_todo → falta_uno → falta_dos → falta_varios.
+    expect(conMuchos.map((r) => r.nivel)).toEqual([
+      "tenes_todo",
+      "tenes_todo",
+      "tenes_todo",
+      "falta_dos",
+      "falta_varios",
+    ]);
 
     const vacio = buscarRecetas(CATALOGO, filtros([]));
     expect(vacio.some((r) => r.receta.id === "guiso")).toBe(false);
+  });
+
+  it("una receta ajena no se cuela aunque le falte menos que a las tuyas", () => {
+    const soloAtun = buscarRecetas(CATALOGO, filtros(["atun"]));
+    // El omelette ajena (faltan 2) va DESPUÉS de la ensalada de atún (falta 1),
+    // y las que no usan atún y les faltan 3+ quedan fuera.
+    expect(soloAtun[0].receta.id).toBe("atun");
+    expect(soloAtun.some((r) => r.receta.id === "tortilla")).toBe(false);
+    expect(soloAtun.some((r) => r.receta.id === "palta")).toBe(false);
+  });
+
+  it("los postres van después de los platos salados con la misma cercanía", () => {
+    const flan = receta("flan", {
+      tiempo: 10,
+      dificultad: "cero_cocina",
+      categoria: "dulce",
+      etiquetas: ["vegetariano", "sin_tacc", "sin_frutos_secos"],
+      ingredientes: [rel("flan", huevo), rel("flan", queso, { reemplazo: "dulce de leche" })],
+    });
+    const resultados = buscarRecetas([...CATALOGO, flan], filtros(["huevo"]));
+    // Omelette (salado, falta 1) antes que el flan (dulce, falta 1);
+    // la tortilla relevante (falta 2) después; las ajenas van al final.
+    expect(resultados.map((r) => r.receta.id)).toEqual([
+      "omelette",
+      "flan",
+      "tortilla",
+      "atun",
+    ]);
+  });
+
+  it("respeta el filtro de categoría salado/dulce", () => {
+    const flan = receta("flan", {
+      categoria: "dulce",
+      ingredientes: [rel("flan", huevo), rel("flan", queso)],
+    });
+    const salados = buscarRecetas(
+      [...CATALOGO, flan],
+      filtros(["huevo"], { categoria: "salado" }),
+    );
+    expect(salados.some((r) => r.receta.id === "flan")).toBe(false);
+    const dulces = buscarRecetas(
+      [...CATALOGO, flan],
+      filtros(["huevo"], { categoria: "dulce" }),
+    );
+    expect(dulces.map((r) => r.receta.id)).toEqual(["flan"]);
   });
 
   it("respeta el tiempo máximo", () => {

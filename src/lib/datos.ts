@@ -21,6 +21,7 @@ import { cacheLife } from "next/cache";
 import { crearClienteSupabase } from "@/lib/supabase";
 import type {
   Alergeno,
+  CategoriaReceta,
   Dificultad,
   EtiquetaDieta,
   Ingrediente,
@@ -53,7 +54,7 @@ const COLS_INGREDIENTE = "id, nombre, categoria, es_basico, alergenos";
 
 /** Columnas de receta que consume la app (sin created_at). */
 const COLS_RECETA =
-  "id, titulo, descripcion_corta, tiempo_minutos, dificultad, porciones_base, pasos, tip_principiante, etiquetas_dieta, macros_generales, imagen_url";
+  "id, titulo, categoria, descripcion_corta, tiempo_minutos, dificultad, porciones_base, pasos, tip_principiante, etiquetas_dieta, macros_generales, imagen_url";
 
 /**
  * Fila de la relación, con ingrediente y receta resueltos en un solo viaje.
@@ -96,6 +97,7 @@ const ALERGENOS_VALIDOS = new Set<Alergeno>([
   "pescado",
 ]);
 const DIFICULTADES_VALIDAS = new Set<Dificultad>(["cero_cocina", "facil"]);
+const CATEGORIAS_VALIDAS = new Set<CategoriaReceta>(["salado", "dulce"]);
 const UNIDADES_VALIDAS = new Set<Unidad>(["g", "ml", "unidad", "cda", "taza", "pizca"]);
 const ETIQUETAS_VALIDAS = new Set<EtiquetaDieta>([
   "vegetariano",
@@ -123,6 +125,9 @@ function normalizarReceta(fila: any): Receta {
     id: String(fila.id),
     titulo: String(fila.titulo ?? ""),
     descripcion_corta: String(fila.descripcion_corta ?? ""),
+    categoria: CATEGORIAS_VALIDAS.has(fila.categoria)
+      ? (fila.categoria as CategoriaReceta)
+      : "salado",
     tiempo_minutos: Number(fila.tiempo_minutos ?? 0),
     dificultad: DIFICULTADES_VALIDAS.has(fila.dificultad)
       ? (fila.dificultad as Dificultad)

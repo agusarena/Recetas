@@ -8,8 +8,8 @@ describe("seed.sql", () => {
 
   it("parsea el catálogo completo", () => {
     expect(semilla.ingredientes).toHaveLength(54);
-    expect(semilla.recetas).toHaveLength(37);
-    expect(semilla.relaciones.length).toBeGreaterThanOrEqual(140);
+    expect(semilla.recetas).toHaveLength(45);
+    expect(semilla.relaciones.length).toBeGreaterThanOrEqual(170);
   });
 
   it("no tiene relaciones huérfanas ni recetas vacías", () => {
@@ -47,5 +47,48 @@ describe("seed.sql", () => {
     for (const ingrediente of semilla.ingredientes.filter((i) => i.es_basico)) {
       expect(ingrediente.alergenos).toEqual([]);
     }
+  });
+
+  it("declara categoría salado/dulce en todas las recetas", () => {
+    const dulces = semilla.recetas.filter((r) => r.categoria === "dulce").map((r) => r.titulo);
+    expect(dulces.length).toBeGreaterThanOrEqual(6);
+    expect(dulces.some((t) => t.toLowerCase().includes("postre"))).toBe(true);
+    for (const receta of semilla.recetas) {
+      expect(["salado", "dulce"]).toContain(receta.categoria);
+    }
+  });
+
+  it("todo ingrediente no básico es obligatorio en al menos una receta", () => {
+    const obligatorios = new Set(
+      semilla.relaciones.filter((r) => !r.es_opcional).map((r) => r.ingrediente_id),
+    );
+    const sinReceta = semilla.ingredientes
+      .filter((i) => !i.es_basico && !obligatorios.has(i.id))
+      .map((i) => i.nombre);
+    expect(sinReceta).toEqual([]);
+  });
+
+  it("buscar por un ingrediente trae las recetas que lo usan, primero", async () => {
+    const { buscarRecetas } = await import("../src/lib/motor-busqueda");
+    const carne = semilla.ingredientes.find((i) => i.nombre === "Carne picada");
+    expect(carne).toBeDefined();
+
+    const resultados = buscarRecetas(semilla.recetas, {
+      ingredientes: [carne!.id],
+      restricciones: [],
+      tiempo_maximo: null,
+    });
+
+    const usanCarne = resultados.filter((r) =>
+      r.receta.ingredientes.some(
+        (ri) => ri.ingrediente_id === carne!.id && !ri.es_opcional && !ri.ingrediente.es_basico,
+      ),
+    );
+    expect(usanCarne.length).toBeGreaterThanOrEqual(3);
+
+    // Las que usan carne picada encabezan la lista: ninguna receta ajena va antes.
+    const primeras = resultados.slice(0, usanCarne.length);
+    expect(primeras).toEqual(usanCarne);
+    expect(resultados[0].receta.titulo).toContain("Empanadas");
   });
 });

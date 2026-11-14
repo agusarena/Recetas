@@ -13,7 +13,8 @@ Correr los archivos en este orden (cada migración asume las anteriores):
 | 1 | `migrations/0001_init.sql` | Tablas, enums, índices y RLS (lectura pública) |
 | 2 | `migrations/0002_seguridad_e_indices.sql` | Revoke de escrituras + drop de índice redundante |
 | 3 | `migrations/0003_reemplazos.sql` | Columna `reemplazo_ingrediente_id` + FK + índice |
-| 4 | `seed.sql` | Catálogo: 54 ingredientes + 37 recetas |
+| 4 | `migrations/0004_categoria.sql` | Columna `recetas.categoria` (`salado`/`dulce`) |
+| 5 | `seed.sql` | Catálogo: 54 ingredientes + 45 recetas |
 
 Desde el dashboard de Supabase: pegar cada archivo en el SQL Editor, en
 ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
@@ -22,10 +23,10 @@ ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
 `seed.sql` es **idempotente** y transaccional: se puede volver a correr
 sin duplicar filas ni dejar el catálogo a medias.
 
-> **Si ya tenías el catálogo cargado:** aplicá `0003` y volvé a correr
-> `seed.sql`. La migración agrega la columna y el seed completa los IDs de
-> los reemplazos. Correr el seed antes de `0003` falla porque la columna
-> todavía no existe.
+> **Si ya tenías el catálogo cargado:** aplicá `0003` y `0004` y volvé a
+> correr `seed.sql`. Las migraciones agregan las columnas y el seed completa
+> los IDs de los reemplazos. Correr el seed antes de `0003` falla porque la
+> columna todavía no existe.
 
 ## Convenciones
 

@@ -9,6 +9,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type {
   Alergeno,
+  CategoriaReceta,
   Dificultad,
   EtiquetaDieta,
   Ingrediente,
@@ -72,7 +73,7 @@ function parsearIngredientes(sql: string): Ingrediente[] {
 function parsearRecetas(sql: string): RecetaConIngredientes[] {
   const bloque = seccion(sql, "insert into recetas", "on conflict (id) do nothing;");
   const regex =
-    /^\s*\('([0-9a-f-]{36})',\s*\n\s*'([^']*)',\s*\n\s*'([^']*)',\s*\n\s*(\d+),\s*'(cero_cocina|facil)',\s*(\d+),/gm;
+    /^\s*\('([0-9a-f-]{36})',\s*\n\s*'([^']*)',\s*\n\s*'(salado|dulce)',\s*\n\s*'([^']*)',\s*\n\s*(\d+),\s*'(cero_cocina|facil)',\s*(\d+),/gm;
   const coincidencias = [...bloque.matchAll(regex)];
 
   return coincidencias.map((m, indice) => {
@@ -93,10 +94,11 @@ function parsearRecetas(sql: string): RecetaConIngredientes[] {
     return {
       id: m[1],
       titulo: desescapar(m[2]),
-      descripcion_corta: desescapar(m[3]),
-      tiempo_minutos: Number(m[4]),
-      dificultad: m[5] as Dificultad,
-      porciones_base: Number(m[6]),
+      categoria: m[3] as CategoriaReceta,
+      descripcion_corta: desescapar(m[4]),
+      tiempo_minutos: Number(m[5]),
+      dificultad: m[6] as Dificultad,
+      porciones_base: Number(m[7]),
       pasos: [],
       tip_principiante: null,
       etiquetas_dieta: etiquetasCrudas
