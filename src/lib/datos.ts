@@ -60,7 +60,7 @@ const COLS_RECETA =
  * Es un template literal (no un join): el tipo literal es lo que permite
  * a supabase-js inferir la forma de las filas en el cliente.
  */
-const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, reemplazo_ingrediente_id, ingrediente:ingredientes(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
+const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, reemplazo_ingrediente_id, ingrediente:ingredientes!receta_ingredientes_ingrediente_id_fkey(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
 
 /** Un uuid v4-ish: suficiente para descartar basura de URL antes de SQL. */
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
