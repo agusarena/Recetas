@@ -12,6 +12,7 @@ import { PlaceholderImagen } from "@/components/PlaceholderImagen";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
 import { BotonListaCompras } from "@/components/resultados/BotonListaCompras";
+import { armarLista } from "@/lib/lista-compras";
 import { IconoReloj, IconoSombrero, IconoCesta, IconoDado } from "@/components/iconos";
 
 const ETIQUETA_DIFICULTAD = {
@@ -61,11 +62,12 @@ export function TarjetaReceta({
 
   return (
     <article className="flex gap-4 px-1 py-5 sm:px-2">
-      <PlaceholderImagen
-        titulo={receta.titulo}
-        url={receta.imagen_url}
-        className="h-24 w-24 shrink-0 rounded-lg sm:h-28 sm:w-28"
-      />
+        <PlaceholderImagen
+          titulo={receta.titulo}
+          url={receta.imagen_url}
+          categoria={receta.categoria}
+          className="h-24 w-24 shrink-0 rounded-lg sm:h-28 sm:w-28"
+        />
       <div className="min-w-0 flex-1">
         <div className="flex items-start justify-between gap-2">
           <h2 className="font-display text-xl font-semibold leading-snug text-tinta">
@@ -117,7 +119,11 @@ export function TarjetaReceta({
         {resultado.faltantes.length > 0 && (
           <div className="mt-2">
             <BotonListaCompras
-              items={resultado.faltantes.map((f) => f.nombre)}
+              items={armarLista(
+                receta.ingredientes.filter((ri) =>
+                  resultado.faltantes.some((f) => f.nombre === ri.ingrediente.nombre),
+                ),
+              )}
               titulo={receta.titulo}
               compacto
             />

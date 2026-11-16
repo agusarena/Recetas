@@ -11,9 +11,9 @@
  *     en el perfil de sabor pedido (salado/dulce).
  *  2. Cálculo de coincidencia sobre ingredientes OBLIGATORIOS
  *     (se ignoran es_basico y es_opcional).
- *  3. Ranking por RELEVANCIA: primero las recetas que usan lo que marcaste
- *     (aunque les falten 3 o más), salados antes que dulces, y al final
- *     hasta MAX_OTRAS recetas ajenas a tu heladera.
+ *  3. Ranking por RELEVANCIA: si marcaste algo, solo se muestran recetas
+ *     que usan lo tuyo (salados antes que dulces a igual cercanía); si no
+ *     hay ninguna, aparecen las más cercanas para no dejar vacía la lista.
  */
 import type {
   Alergeno,
@@ -56,8 +56,6 @@ const ORDEN_DIFICULTAD: Record<Dificultad, number> = {
 };
 
 /** Cantidad mínima de resultados objetivo antes de bajar al Nivel 3. */
-const MAX_OTRAS = 3;
-
 /** Cantidad de sugerencias del Modo Indeciso. */
 export const SUGERENCIAS_INDECISO = 3;
 
@@ -99,11 +97,26 @@ export function cumpleTiempo(receta: RecetaConIngredientes, tiempoMaximo: number
 // Paso 2 — Cálculo de coincidencia
 // ─────────────────────────────────────────────────────────────────────────────
 
+/**
+ * Un ingrediente de una receta es OBLIGATORIO si no es opcional y no es
+ * básico… salvo que el usuario declaró que no tiene ese básico
+ * (`sin_basicos`): entonces también falta y entra en el conteo.
+ */
+export function esObligatorio(
+  ri: RecetaIngredienteConDetalle,
+  sinBasicos?: Set<string>,
+): boolean {
+  if (ri.es_opcional) return false;
+  if (!ri.ingrediente.es_basico) return true;
+  return sinBasicos?.has(ri.ingrediente_id) ?? false;
+}
+
 /** Ingredientes OBLIGATORIOS: ni básicos (sal, agua, aceite...) ni opcionales. */
-export function ingredientesObligatorios(receta: RecetaConIngredientes) {
-  return receta.ingredientes.filter(
-    (ri) => !ri.ingrediente.es_basico && !ri.es_opcional,
-  );
+export function ingredientesObligatorios(
+  receta: RecetaConIngredientes,
+  sinBasicos?: Set<string>,
+) {
+  return receta.ingredientes.filter((ri) => esObligatorio(ri, sinBasicos));
 }
 
 /**
@@ -154,11 +167,12 @@ function evaluarObligatorios(
 export function evaluarCoincidencia(
   receta: RecetaConIngredientes,
   ingredientesUsuario: string[],
+  sinBasicos?: Set<string>,
 ): Pick<
   ResultadoBusqueda,
   "nivel" | "coincidentes" | "obligatorios_totales" | "faltantes" | "reemplazos_usados"
 > {
-  const obligatorios = ingredientesObligatorios(receta);
+  const obligatorios = ingredientesObligatorios(receta, sinBasicos);
   const { faltantes, reemplazos_usados } = evaluarObligatorios(obligatorios, ingredientesUsuario);
 
   const nivel =
@@ -236,12 +250,16 @@ function cumpleCategoria(
  * Motor principal. Aplica las reglas de negocio y devuelve los resultados
  * ordenados por relevancia, no solo por cercanía:
  *
- *  1. Recetas que usan lo que marcaste (con reemplazo incluido), de la más
- *     cercana a la más lejana — aunque les falten 3 o más ingredientes.
- *  2. Recetas dulces después de las saladas en cada grupo.
- *  3. Al final, hasta MAX_OTRAS recetas ajenas a tu heladera ("otras
- *     ideas"); si no hay ninguna receta con tus ingredientes, se muestran
- *     las ajenas más cercanas sin tope para no dejar la pantalla vacía.
+ *  1. Si marcaste ingredientes, SOLO se muestran recetas que usan algo de
+ *     lo tuyo (con reemplazo incluido), de la más cercana a la más lejana
+ *     — aunque les falten 3 o más. Una receta ajena a tu heladera no se
+ *     muestra nunca: si pusiste dulce de leche y harina no querés empanadas
+ *     que te pidan comprar carne y cebolla de regalo.
+ *  2. Recetas dulces después de las saladas a igual cercanía.
+ *  3. Con la heladera vacía (nada marcado) se muestran las ajenas más
+ *     cercanas para no dejar la pantalla vacía. Pero si marcaste
+ *     ingredientes y ninguna receta usa lo tuyo, se devuelve []: la UI
+ *     muestra opciones de degradación en vez de recetas que no pediste.
  */
 export function buscarRecetas(
   catalogo: RecetaConIngredientes[],
@@ -256,23 +274,26 @@ export function buscarRecetas(
 
   if (filtros.modo_indeciso) return sugerirIndeciso(aptas, filtros);
 
+  const sinBasicos = new Set(filtros.sin_basicos ?? []);
   const evaluadas = aptas.map((receta) => ({
     receta,
-    ...evaluarCoincidencia(receta, filtros.ingredientes),
+    ...evaluarCoincidencia(receta, filtros.ingredientes, sinBasicos),
   }));
 
-  // Falta 3+ sin usar tus ingredientes = ruido: no entra nunca.
-  const relevantes = evaluadas.filter((r) => r.coincidentes > 0);
-  const ajenas = evaluadas
-    .filter((r) => r.coincidentes === 0 && r.nivel !== "falta_varios")
+  const relevantes = evaluadas
+    .filter((r) => r.coincidentes > 0)
     .sort(compararResultados);
+  if (relevantes.length > 0) return relevantes;
 
-  if (relevantes.length === 0) return ajenas;
+  // Marcaste ingredientes y nada coincide: no mostramos ajenas. La UI
+  // degrada con opciones reales (quitar filtros, comprar algo, Sorprendeme).
+  if (filtros.ingredientes.length > 0) return [];
 
-  return [
-    ...relevantes.sort(compararResultados),
-    ...ajenas.slice(0, MAX_OTRAS),
-  ];
+  // Heladera vacía: las ajenas más cercanas sirven de punto de partida.
+  // "Falta 3+" queda fuera: sería una lista de compras gigante.
+  return evaluadas
+    .filter((r) => r.nivel !== "falta_varios")
+    .sort(compararResultados);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -312,8 +333,9 @@ function sugerirIndeciso(aptas: RecetaConIngredientes[], filtros: FiltrosBusqued
   }));
   ponderadas.sort((a, b) => b.peso - a.peso);
 
+  const sinBasicos = new Set(filtros.sin_basicos ?? []);
   return ponderadas.slice(0, SUGERENCIAS_INDECISO).map(({ receta }) => ({
     receta,
-    ...evaluarCoincidencia(receta, filtros.ingredientes),
+    ...evaluarCoincidencia(receta, filtros.ingredientes, sinBasicos),
   }));
 }

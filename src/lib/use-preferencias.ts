@@ -2,7 +2,7 @@
 
 /** Hook de React para leer y actualizar las preferencias del usuario. */
 import { useCallback, useEffect, useState } from "react";
-import type { EtiquetaDieta, Preferencias } from "@/types";
+import type { EtiquetaDieta, Preferencias, ValorFeedback } from "@/types";
 import {
   PREFERENCIAS_DEFAULT,
   guardarPreferencias,
@@ -69,6 +69,58 @@ export function usePreferencias() {
     [actualizar],
   );
 
+  /**
+   * Marca o desmarca un básico (sal, orégano…) como "no lo tengo": deja de
+   * asumirse disponible y pasa a faltar en las recetas que lo piden.
+   */
+  const toggleSinBasico = useCallback(
+    (ingredienteId: string) => {
+      actualizar((prev) => {
+        const sin_basicos = prev.sin_basicos.includes(ingredienteId)
+          ? prev.sin_basicos.filter((s) => s !== ingredienteId)
+          : [...prev.sin_basicos, ingredienteId];
+        return { ...prev, sin_basicos };
+      });
+    },
+    [actualizar],
+  );
+
+  /** Marca una receta como cocinada y la lleva al frente del historial. */
+  const marcarCocinada = useCallback(
+    (recetaId: string) => {
+      actualizar((prev) => ({
+        ...prev,
+        cocinadas: [
+          { receta_id: recetaId, cocinada_en: new Date().toISOString() },
+          ...prev.cocinadas.filter((r) => r.receta_id !== recetaId),
+        ],
+      }));
+    },
+    [actualizar],
+  );
+
+  /** Quita una receta del historial local. */
+  const quitarCocinada = useCallback(
+    (recetaId: string) => {
+      actualizar((prev) => ({
+        ...prev,
+        cocinadas: prev.cocinadas.filter((r) => r.receta_id !== recetaId),
+      }));
+    },
+    [actualizar],
+  );
+
+  /** Guarda feedback local, sin mandar datos ni crear una cuenta. */
+  const guardarFeedback = useCallback(
+    (recetaId: string, valor: ValorFeedback) => {
+      actualizar((prev) => ({
+        ...prev,
+        feedback: { ...prev.feedback, [recetaId]: valor },
+      }));
+    },
+    [actualizar],
+  );
+
   /** Guarda la query de la última búsqueda para volver desde una receta. */
   const guardarUltimaBusqueda = useCallback(
     (query: string | null) => {
@@ -84,6 +136,10 @@ export function usePreferencias() {
     toggleRestriccion,
     toggleFavorito,
     setHeladera,
+    toggleSinBasico,
+    marcarCocinada,
+    quitarCocinada,
+    guardarFeedback,
     guardarUltimaBusqueda,
   };
 }

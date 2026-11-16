@@ -9,6 +9,9 @@ import { Suspense } from "react";
 import Link from "next/link";
 import type { ResultadoBusqueda } from "@/types";
 import { RESTRICCIONES, buscarRecetas } from "@/lib/motor-busqueda";
+import { calcularDegradaciones } from "@/lib/degradacion";
+import type { Degradaciones } from "@/lib/degradacion";
+import { armarLista } from "@/lib/lista-compras";
 import { obtenerCatalogo } from "@/lib/datos";
 import { supabaseConfigurado } from "@/lib/supabase";
 import { validarFiltros } from "@/lib/filtros";
@@ -40,6 +43,30 @@ function urlConCategoria(params: URLSearchParams, valor: string | null): string 
   return query ? `/resultados?${query}` : "/resultados";
 }
 
+/** URL de resultados eliminando los parámetros indicados. */
+function urlSin(params: URLSearchParams, claves: string[]): string {
+  const copia = new URLSearchParams(params);
+  for (const clave of claves) copia.delete(clave);
+  const query = copia.toString();
+  return query ? `/resultados?${query}` : "/resultados";
+}
+
+/** URL sumando un ingrediente al pantry marcado. */
+function urlConIngrediente(params: URLSearchParams, id: string): string {
+  const copia = new URLSearchParams(params);
+  const actuales = (copia.get("ingredientes") ?? "").split(",").filter(Boolean);
+  copia.set("ingredientes", [...actuales, id].join(","));
+  return `/resultados?${copia.toString()}`;
+}
+
+/** URL del modo "Sorprendeme": conserva restricciones y tiempo, ignora pantry. */
+function urlIndeciso(params: URLSearchParams): string {
+  const copia = new URLSearchParams(params);
+  copia.set("modo", "indeciso");
+  copia.set("semilla", "0");
+  return `/resultados?${copia.toString()}`;
+}
+
 export default function Page(props: PageProps<"/resultados">) {
   return (
     <Suspense fallback={<Esqueleto />}>
@@ -58,6 +85,107 @@ function Esqueleto() {
         <div className="h-24 rounded-xl bg-crema" />
       </div>
     </main>
+  );
+}
+
+interface OpcionSalida {
+  href: string;
+  titulo: string;
+  detalle: string;
+}
+
+/**
+ * Pantalla de resultados vacía. Nunca queda en "no hay nada": ofrece
+ * salidas verificadas (conteos recalculados con el motor) que relajan
+ * filtros o suman una compra, y "Sorprendeme" como última salida.
+ * Nunca sugiere quitar restricciones alimentarias.
+ */
+function SinResultados({
+  filtros,
+  params,
+  degradaciones,
+}: {
+  filtros: ReturnType<typeof validarFiltros>;
+  params: URLSearchParams;
+  degradaciones: Degradaciones | null;
+}) {
+  const opciones: OpcionSalida[] = [];
+  if (degradaciones) {
+    if (degradaciones.sinTiempo) {
+      opciones.push({
+        href: urlSin(params, ["tiempo"]),
+        titulo: "Cocinar sin límite de tiempo",
+        detalle: `+${degradaciones.sinTiempo} receta${degradaciones.sinTiempo === 1 ? "" : "s"}`,
+      });
+    }
+    if (degradaciones.sinSabor) {
+      opciones.push({
+        href: urlSin(params, ["categoria"]),
+        titulo: "Quitar el filtro de sabor",
+        detalle: `+${degradaciones.sinSabor} receta${degradaciones.sinSabor === 1 ? "" : "s"}`,
+      });
+    }
+    if (degradaciones.sinAmbos) {
+      opciones.push({
+        href: urlSin(params, ["tiempo", "categoria"]),
+        titulo: "Sin límite de tiempo ni filtro de sabor",
+        detalle: `+${degradaciones.sinAmbos} receta${degradaciones.sinAmbos === 1 ? "" : "s"}`,
+      });
+    }
+    for (const compra of degradaciones.compras) {
+      opciones.push({
+        href: urlConIngrediente(params, compra.id),
+        titulo: `Si comprás ${compra.nombre.toLowerCase()}`,
+        detalle: `+${compra.recetas} receta${compra.recetas === 1 ? "" : "s"}`,
+      });
+    }
+  }
+
+  return (
+    <div className="border-t border-linea pt-6">
+      <p className="font-semibold text-tinta">
+        {filtros.ingredientes.length > 0
+          ? "Ninguna receta usa lo que marcaste con estos filtros."
+          : "No encontré recetas con estos filtros."}
+      </p>
+      {opciones.length > 0 ? (
+        <>
+          <p className="mt-1 text-sm text-tinta-suave">Pero hay salidas:</p>
+          <ul className="mt-4 space-y-2">
+            {opciones.map((opcion) => (
+              <li key={opcion.href + opcion.titulo}>
+                <Link
+                  href={opcion.href}
+                  className="flex items-center justify-between gap-3 rounded-xl border border-linea bg-papel px-4 py-3 transition-colors hover:border-verde"
+                >
+                  <span className="font-medium text-tinta">{opcion.titulo}</span>
+                  <span className="shrink-0 text-sm font-semibold text-verde">
+                    {opcion.detalle}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </>
+      ) : (
+        <p className="mt-1 text-sm text-tinta-suave">
+          Volvé a{" "}
+          <Link href="/" className="font-semibold text-verde hover:underline">
+            marcar ingredientes
+          </Link>{" "}
+          o revisá las restricciones elegidas.
+        </p>
+      )}
+      <p className="mt-6 text-sm text-tinta-suave">
+        ¿Nada te convence? Dejanos elegir por vos:{" "}
+        <Link
+          href={urlIndeciso(params)}
+          className="font-semibold text-verde hover:underline"
+        >
+          Sorprendeme
+        </Link>
+      </p>
+    </div>
   );
 }
 
@@ -101,24 +229,43 @@ async function Resultados({
   }
 
   const resultados = buscarRecetas(estado.datos, filtros);
-  return <ListaResultados resultados={resultados} filtros={filtros} params={params} />;
+  const degradaciones =
+    resultados.length === 0 ? calcularDegradaciones(estado.datos, filtros) : null;
+  return (
+    <ListaResultados
+      resultados={resultados}
+      filtros={filtros}
+      params={params}
+      degradaciones={degradaciones}
+    />
+  );
 }
 
 function ListaResultados({
   resultados,
   filtros,
   params,
+  degradaciones,
 }: {
   resultados: ResultadoBusqueda[];
   filtros: ReturnType<typeof validarFiltros>;
   params: URLSearchParams;
+  degradaciones: Degradaciones | null;
 }) {
   const restricciones = filtros.restricciones
     .map((r) => ETIQUETA_RESTRICCION.get(r) ?? r)
     .join(", ");
 
-  const faltantesUnicos = [...new Set(resultados.flatMap((r) => r.faltantes.map((f) => f.nombre)))]
-    .sort((a, b) => a.localeCompare(b, "es"));
+  // Lista de compras de TODA la búsqueda: relaciones de los faltantes, con
+  // cantidad y sección del super (armarLista agrupa por ingrediente).
+  const nombresFaltantes = new Set(
+    resultados.flatMap((r) => r.faltantes.map((f) => f.nombre)),
+  );
+  const listaCompras = armarLista(
+    resultados.flatMap((r) =>
+      r.receta.ingredientes.filter((ri) => nombresFaltantes.has(ri.ingrediente.nombre)),
+    ),
+  );
 
   return (
     <main className="mx-auto w-full max-w-3xl flex-1 px-4 pb-12 pt-8">
@@ -155,10 +302,10 @@ function ListaResultados({
             );
           })}
         </nav>
-        {faltantesUnicos.length > 0 && (
+        {listaCompras.length > 0 && (
           <div className="mt-3">
             <BotonListaCompras
-              items={faltantesUnicos}
+              items={listaCompras}
               titulo="Todo lo que falta para estas recetas"
             />
           </div>
@@ -166,18 +313,7 @@ function ListaResultados({
       </header>
 
       {resultados.length === 0 ? (
-        <div className="border-t border-linea pt-6 text-tinta-suave">
-          <p className="mb-2 font-semibold text-tinta">
-            No encontré nada que cumpla esas restricciones y tiempos.
-          </p>
-          <p className="text-sm">
-            Probá sin el filtro de tiempo, revisá las restricciones o volvé a{" "}
-            <Link href="/" className="font-semibold text-verde hover:underline">
-              agregar más ingredientes
-            </Link>
-            .
-          </p>
-        </div>
+        <SinResultados filtros={filtros} params={params} degradaciones={degradaciones} />
       ) : (
         <div className="divide-y divide-linea border-t border-linea">
           {resultados.map((resultado) => (

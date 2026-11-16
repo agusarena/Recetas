@@ -31,6 +31,12 @@ export function SitioHeader() {
             <IconoCorazon className="h-4 w-4" />
             Favoritos
           </Link>
+          <Link
+            href="/historial"
+            className="text-tinta-suave transition-colors hover:text-verde"
+          >
+            Historial
+          </Link>
         </nav>
       </div>
     </header>

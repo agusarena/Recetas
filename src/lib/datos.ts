@@ -267,6 +267,7 @@ export function resumirReceta(receta: Receta): ResumenReceta {
     id: receta.id,
     titulo: receta.titulo,
     descripcion_corta: receta.descripcion_corta,
+    categoria: receta.categoria,
     tiempo_minutos: receta.tiempo_minutos,
     dificultad: receta.dificultad,
     etiquetas_dieta: receta.etiquetas_dieta,

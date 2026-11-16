@@ -200,7 +200,7 @@ describe("motor de búsqueda", () => {
     expect(resultados.findIndex((r) => r.receta.id === "tortilla")).toBeGreaterThan(0);
   });
 
-  it("rankea por relevancia: usan tus ingredientes antes que las ajenas", () => {
+  it("no muestra recetas ajenas cuando hay recetas con tus ingredientes", () => {
     const conMuchos = buscarRecetas(
       CATALOGO,
       filtros(["papa", "huevo", "cebolla", "queso", "atun", "tomate"]),
@@ -220,13 +220,45 @@ describe("motor de búsqueda", () => {
     expect(vacio.some((r) => r.receta.id === "guiso")).toBe(false);
   });
 
-  it("una receta ajena no se cuela aunque le falte menos que a las tuyas", () => {
+  it("una receta ajena no aparece, ni aunque le falte menos", () => {
     const soloAtun = buscarRecetas(CATALOGO, filtros(["atun"]));
-    // El omelette ajena (faltan 2) va DESPUÉS de la ensalada de atún (falta 1),
-    // y las que no usan atún y les faltan 3+ quedan fuera.
-    expect(soloAtun[0].receta.id).toBe("atun");
-    expect(soloAtun.some((r) => r.receta.id === "tortilla")).toBe(false);
-    expect(soloAtun.some((r) => r.receta.id === "palta")).toBe(false);
+    // Solo la ensalada de atún: el omelette (ajena, faltan 2) queda fuera,
+    // y también las que no usan atún y les faltan 3+.
+    expect(soloAtun.map((r) => r.receta.id)).toEqual(["atun"]);
+  });
+
+  it("sin coincidencias y con ingredientes marcados no muestra ajenas", () => {
+    // Un ID que no matchea nada del catálogo: el motor devuelve [] y la
+    // UI muestra el bloque de degradación con opciones reales.
+    const resultados = buscarRecetas(CATALOGO, filtros(["ingrediente-inventado"]));
+    expect(resultados).toEqual([]);
+  });
+
+  it("un básico desmarcado (sin_basicos) pasa a faltar", () => {
+    // Con sal marcada y sin desmarcarla, la tortilla está completa.
+    const normal = buscarRecetas(CATALOGO, filtros(["papa", "huevo", "cebolla", "sal"]));
+    expect(normal[0]?.receta.id).toBe("tortilla");
+    expect(normal[0]?.nivel).toBe("tenes_todo");
+
+    // El usuario dice que NO tiene sal: la tortilla pasa a faltar 1 y el
+    // omelette (que no pide sal) queda primero.
+    const sinSal = buscarRecetas(
+      CATALOGO,
+      filtros(["papa", "huevo", "cebolla"], { sin_basicos: ["sal"] }),
+    );
+    expect(sinSal[0]?.receta.id).toBe("omelette");
+    const tortilla = sinSal.find((r) => r.receta.id === "tortilla");
+    expect(tortilla?.nivel).toBe("falta_uno");
+    expect(tortilla?.faltantes[0]?.nombre).toBe("Sal");
+    expect(tortilla?.obligatorios_totales).toBe(4);
+  });
+
+  it("heladera vacía muestra las ajenas más cercanas para no quedar vacío", () => {
+    // Sin nada marcado: se muestran las ajenas más cercanas (falta 1-2),
+    // pero nunca una ajena con falta 3+.
+    const resultados = buscarRecetas(CATALOGO, filtros([]));
+    expect(resultados.map((r) => r.receta.id)).toEqual(["omelette", "atun"]);
+    expect(resultados.every((r) => r.nivel !== "falta_varios")).toBe(true);
   });
 
   it("los postres van después de los platos salados con la misma cercanía", () => {
@@ -239,12 +271,11 @@ describe("motor de búsqueda", () => {
     });
     const resultados = buscarRecetas([...CATALOGO, flan], filtros(["huevo"]));
     // Omelette (salado, falta 1) antes que el flan (dulce, falta 1);
-    // la tortilla relevante (falta 2) después; las ajenas van al final.
+    // la tortilla relevante (falta 2) después. Atún es ajena: fuera.
     expect(resultados.map((r) => r.receta.id)).toEqual([
       "omelette",
       "flan",
       "tortilla",
-      "atun",
     ]);
   });
 

@@ -8,7 +8,7 @@
  * Todo valor leído se valida contra el esquema, por si el usuario (o una
  * versión vieja de la app) dejó datos corruptos.
  */
-import type { EtiquetaDieta, Preferencias } from "@/types";
+import type { EtiquetaDieta, Preferencias, RecetaCocinada } from "@/types";
 import { PREFERENCIAS_VERSION } from "@/types";
 import { RESTRICCIONES } from "@/lib/motor-busqueda";
 
@@ -23,6 +23,9 @@ export const PREFERENCIAS_DEFAULT: Preferencias = {
   restricciones: [],
   favoritos: [],
   heladera: [],
+  sin_basicos: [],
+  cocinadas: [],
+  feedback: {},
   ultima_busqueda: null,
 };
 
@@ -40,6 +43,26 @@ export function validarPreferencias(valor: unknown): Preferencias {
   const heladera = Array.isArray(datos.heladera)
     ? datos.heladera.filter((h): h is string => typeof h === "string")
     : [];
+  const sin_basicos = Array.isArray(datos.sin_basicos)
+    ? datos.sin_basicos.filter((s): s is string => typeof s === "string")
+    : [];
+  const cocinadas = Array.isArray(datos.cocinadas)
+    ? datos.cocinadas.filter((registro): registro is RecetaCocinada =>
+        typeof registro === "object" &&
+        registro !== null &&
+        typeof (registro as RecetaCocinada).receta_id === "string" &&
+        typeof (registro as RecetaCocinada).cocinada_en === "string",
+      )
+    : [];
+  const feedback =
+    typeof datos.feedback === "object" && datos.feedback !== null
+      ? Object.fromEntries(
+          Object.entries(datos.feedback).filter(
+            ([id, valor]) =>
+              typeof id === "string" && (valor === "sirvio" || valor === "no_sirvio"),
+          ),
+        )
+      : {};
   const ultima_busqueda =
     typeof datos.ultima_busqueda === "string" && datos.ultima_busqueda.trim().length > 0
       ? datos.ultima_busqueda
@@ -50,6 +73,9 @@ export function validarPreferencias(valor: unknown): Preferencias {
     restricciones: [...new Set(restricciones)],
     favoritos: [...new Set(favoritos)],
     heladera: [...new Set(heladera)],
+    sin_basicos: [...new Set(sin_basicos)],
+    cocinadas,
+    feedback,
     ultima_busqueda,
   };
 }

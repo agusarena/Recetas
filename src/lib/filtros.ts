@@ -41,7 +41,20 @@ export function validarFiltros(params: URLSearchParams): FiltrosBusqueda {
     ? (categoriaParam as CategoriaReceta)
     : null;
 
-  return { ingredientes, restricciones, tiempo_maximo, categoria, modo_indeciso, semilla };
+  const sin_basicos = (params.get("sin_basicos") ?? "")
+    .split(",")
+    .map((id) => id.trim())
+    .filter((id) => id.length > 0);
+
+  return {
+    ingredientes,
+    restricciones,
+    tiempo_maximo,
+    categoria,
+    modo_indeciso,
+    semilla,
+    sin_basicos,
+  };
 }
 
 /** Serializa filtros a query string para navegar a /resultados. */
@@ -52,6 +65,8 @@ export function filtrosAQuery(filtros: FiltrosBusqueda): string {
     params.set("restricciones", filtros.restricciones.join(","));
   if (filtros.tiempo_maximo !== null) params.set("tiempo", String(filtros.tiempo_maximo));
   if (filtros.categoria) params.set("categoria", filtros.categoria);
+  if (filtros.sin_basicos && filtros.sin_basicos.length > 0)
+    params.set("sin_basicos", filtros.sin_basicos.join(","));
   if (filtros.modo_indeciso) {
     params.set("modo", "indeciso");
     params.set("semilla", String(filtros.semilla ?? 0));

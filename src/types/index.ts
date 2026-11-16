@@ -126,6 +126,7 @@ export interface ResumenReceta {
   id: string;
   titulo: string;
   descripcion_corta: string;
+  categoria: CategoriaReceta;
   tiempo_minutos: number;
   dificultad: Dificultad;
   etiquetas_dieta: EtiquetaDieta[];
@@ -167,6 +168,11 @@ export interface FiltrosBusqueda {
   tiempo_maximo: number | null;
   /** Perfil de sabor pedido; undefined/null = todos (salados y dulces). */
   categoria?: CategoriaReceta | null;
+  /**
+   * IDs de básicos (sal, aceite, orégano…) que el usuario declaró NO tener:
+   * dejan de asumirse y pasan a faltar en las recetas que los piden.
+   */
+  sin_basicos?: string[];
   /** "Sorprendeme": 3 recetas rápidas y fáciles, sin requerir ingredientes. */
   modo_indeciso?: boolean;
   /** Semilla para la elección aleatoria reproducible del Modo Indeciso. */
@@ -197,7 +203,15 @@ export interface RespuestaBusqueda {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /** Versión del esquema de preferencias, para invalidar localStorage futuro. */
-export const PREFERENCIAS_VERSION = 2 as const;
+export const PREFERENCIAS_VERSION = 3 as const;
+
+/** Registro local de una receta que la persona ya cocinó. */
+export interface RecetaCocinada {
+  receta_id: string;
+  cocinada_en: string;
+}
+
+export type ValorFeedback = "sirvio" | "no_sirvio";
 
 export interface Preferencias {
   version: typeof PREFERENCIAS_VERSION;
@@ -206,6 +220,15 @@ export interface Preferencias {
   favoritos: string[];
   /** IDs de ingredientes que el usuario dejó cargados en su heladera. */
   heladera: string[];
+  /**
+   * IDs de básicos que el usuario NO tiene (sal, orégano…): dejan de
+   * asumirse disponibles y pasan a faltar en las recetas que los piden.
+   */
+  sin_basicos: string[];
+  /** Historial local, ordenado por fecha de cocción. */
+  cocinadas: RecetaCocinada[];
+  /** Una opinión por receta, sin enviar datos a ningún servidor. */
+  feedback: Record<string, ValorFeedback>;
   /** Query string de la última búsqueda, para volver desde una receta. */
   ultima_busqueda: string | null;
 }

@@ -19,6 +19,9 @@ describe("preferencias en localStorage", () => {
     expect(viejas.restricciones).toEqual(["sin_tacc"]);
     expect(viejas.favoritos).toEqual(["receta-1"]);
     expect(viejas.heladera).toEqual([]);
+    expect(viejas.sin_basicos).toEqual([]);
+    expect(viejas.cocinadas).toEqual([]);
+    expect(viejas.feedback).toEqual({});
     expect(viejas.ultima_busqueda).toBeNull();
   });
 
@@ -32,12 +35,33 @@ describe("preferencias en localStorage", () => {
     expect(preferencias.restricciones).toEqual(["sin_tacc"]);
     expect(preferencias.favoritos).toEqual(["a"]);
     expect(preferencias.heladera).toEqual(["huevo"]);
+    expect(preferencias.sin_basicos).toEqual([]);
+    expect(preferencias.cocinadas).toEqual([]);
+    expect(preferencias.feedback).toEqual({});
     expect(preferencias.ultima_busqueda).toBe("ingredientes=huevo");
   });
 
   it("normaliza una última búsqueda vacía a null", () => {
     expect(validarPreferencias({ ultima_busqueda: "   " }).ultima_busqueda).toBeNull();
     expect(validarPreferencias({ ultima_busqueda: 123 }).ultima_busqueda).toBeNull();
+  });
+
+  it("conserva historial y feedback válidos, y descarta los corruptos", () => {
+    const preferencias = validarPreferencias({
+      cocinadas: [
+        { receta_id: "r-1", cocinada_en: "2026-01-01T12:00:00.000Z" },
+        { receta_id: 7, cocinada_en: "no" },
+      ],
+      feedback: {
+        "r-1": "sirvio",
+        "r-2": "no_sirvio",
+        "r-3": "quizas",
+      },
+    });
+    expect(preferencias.cocinadas).toEqual([
+      { receta_id: "r-1", cocinada_en: "2026-01-01T12:00:00.000Z" },
+    ]);
+    expect(preferencias.feedback).toEqual({ "r-1": "sirvio", "r-2": "no_sirvio" });
   });
 
   it("en el servidor devuelve el default sin tocar window", () => {

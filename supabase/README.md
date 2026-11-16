@@ -14,7 +14,7 @@ Correr los archivos en este orden (cada migración asume las anteriores):
 | 2 | `migrations/0002_seguridad_e_indices.sql` | Revoke de escrituras + drop de índice redundante |
 | 3 | `migrations/0003_reemplazos.sql` | Columna `reemplazo_ingrediente_id` + FK + índice |
 | 4 | `migrations/0004_categoria.sql` | Columna `recetas.categoria` (`salado`/`dulce`) |
-| 5 | `seed.sql` | Catálogo: 54 ingredientes + 45 recetas |
+| 5 | `seed.sql` | Catálogo: 55 ingredientes + 60 recetas |
 
 Desde el dashboard de Supabase: pegar cada archivo en el SQL Editor, en
 ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar

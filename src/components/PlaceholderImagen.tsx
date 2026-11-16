@@ -1,9 +1,13 @@
+"use client";
+
 /**
- * Placeholder de imagen: usa la foto real si existe, y si no, un tono neutro
- * con la inicial del título en serif (elegido de forma estable por hash).
- * Mantener <img> en vez de next/image: aún no hay dominio de Storage
- * configurado en next.config.
+ * Imagen de receta: usa la foto guardada si existe; si no, una foto
+ * ilustrativa gratuita; y si la red falla, un placeholder local estable.
+ * Mantenemos <img> porque las fotos vienen de un CDN externo y no requieren
+ * configuración de dominios ni procesamiento de Next.
  */
+import { useState } from "react";
+import { imagenGratisParaReceta } from "@/lib/imagenes-recetas";
 
 /** Pares de tonos apagados (fondo / tinta) con aire de recetario. */
 const TONOS = [
@@ -16,19 +20,25 @@ const TONOS = [
 export function PlaceholderImagen({
   titulo,
   url,
+  categoria,
   className = "",
 }: {
   titulo: string;
   url: string | null;
+  categoria?: "salado" | "dulce";
   className?: string;
 }) {
-  if (url) {
+  const [fallo, setFallo] = useState(false);
+  const fuente = url ?? imagenGratisParaReceta(titulo, categoria);
+
+  if (!fallo) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
       <img
-        src={url}
-        alt={titulo}
+        src={fuente}
+        alt={`Foto ilustrativa de ${titulo}`}
         loading="lazy"
+        onError={() => setFallo(true)}
         className={`object-cover ${className}`}
       />
     );

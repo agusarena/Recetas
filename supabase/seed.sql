@@ -1,5 +1,5 @@
 -- =============================================================
--- seed.sql — Catálogo ampliado: 54 ingredientes + 45 recetas.
+-- seed.sql — Catálogo ampliado: 55 ingredientes + 60 recetas.
 -- Ejecutar DESPUÉS de 0001_init.sql, 0002_seguridad_e_indices.sql y
 -- 0003_reemplazos.sql
 -- (SQL Editor del dashboard de Supabase o supabase db reset).
@@ -73,7 +73,8 @@ insert into ingredientes (id, nombre, categoria, es_basico, alergenos) values
   ('00000000-0000-4000-8000-000000000051', 'Caldo en cubito',             'almacén',   false, '{}'),
   ('00000000-0000-4000-8000-000000000052', 'Frutillas',                   'frescos',   false, '{}'),
   ('00000000-0000-4000-8000-000000000053', 'Durazno en lata',             'almacén',   false, '{}'),
-  ('00000000-0000-4000-8000-000000000054', 'Dulce de leche',              'almacén',   false, '{lactosa}')
+  ('00000000-0000-4000-8000-000000000054', 'Dulce de leche',              'almacén',   false, '{lactosa}'),
+  ('00000000-0000-4000-8000-000000000055', 'Bifes de carne',             'carnes',    false, '{}')
 on conflict (id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -729,6 +730,217 @@ insert into recetas (id, titulo, categoria, descripcion_corta, tiempo_minutos, d
    'Servila apenas hecha: si descansa mucho la fruta larga jugo y la ensalada queda aguada.',
    '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
    '{"calorias":180,"perfil":"carbohidratos","proteinas":3,"carbohidratos":42,"grasas":1}'::jsonb,
+   null),
+
+  -- ─────────────────────────────────────────────────────────────
+  -- Ronda de más recetas (146 a 160): más variedad con el mismo
+  -- catálogo + el nuevo ingrediente bifes de carne (055).
+  -- ─────────────────────────────────────────────────────────────
+  ('00000000-0000-4000-8000-000000000146',
+   'Bifes a la criolla',
+   'salado',
+   'Bifes tiernos en la salsa de cebolla y tomate de toda la vida, con papas que se cocinan en el mismo jugo.',
+   40, 'facil', 2,
+   '[{"orden":1,"texto":"Cortá las cebollas en plumas y las papas en rodajas gruesas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Dorá los bifes en aceite a fuego fuerte, de a uno, y reserválos.","tiempo_segundos":null},
+     {"orden":3,"texto":"En la misma sartén cociná la cebolla 5 minutos, sumá el puré de tomate y las papas, y poné los bifes encima.","tiempo_segundos":300},
+     {"orden":4,"texto":"Tapá y cociná a fuego bajo 25 minutos, moviendo de vez en cuando.","tiempo_segundos":1500}]',
+   'Tapá la sartén los últimos minutos: el vapor termina de ablandar la cebolla y los bifes quedan jugosos.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":520,"perfil":"balanceado","proteinas":38,"carbohidratos":45,"grasas":20}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000147',
+   'Bifes a la plancha con ensalada criolla',
+   'salado',
+   'Dos cosas a la vez: bifes jugosos y una ensalada fresca con todo el sabor del limón.',
+   20, 'facil', 2,
+   '[{"orden":1,"texto":"Secá los bifes, salpimentalos y untalos con un hilo de aceite.","tiempo_segundos":null},
+     {"orden":2,"texto":"Cocinalos en sartén bien caliente 3 minutos por lado, sin moverlos.","tiempo_segundos":360},
+     {"orden":3,"texto":"Cortá el tomate y la cebolla de verdeo, y aliñá con jugo de limón, sal y aceite.","tiempo_segundos":null},
+     {"orden":4,"texto":"Serví los bifes con la ensalada al lado.","tiempo_segundos":null}]',
+   'Secá bien los bifes antes de salpimentar: la superficie seca es la que deja el dorado crocante.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":420,"perfil":"proteinas","proteinas":40,"carbohidratos":12,"grasas":24}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000148',
+   'Bifes a la napolitana en sartén',
+   'salado',
+   'Bifes con tomate y queso derretido con tapa: el clásico de restaurante sin encender el horno.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Salpimentá los bifes y dorálos 3 minutos por lado en sartén caliente.","tiempo_segundos":360},
+     {"orden":2,"texto":"Bajá el fuego, cubrí cada bife con puré de tomate y una feta de queso.","tiempo_segundos":null},
+     {"orden":3,"texto":"Tapá la sartén 2 minutos hasta que el queso se derrita.","tiempo_segundos":120},
+     {"orden":4,"texto":"Espolvoreá orégano y serví enseguida.","tiempo_segundos":null}]',
+   'Poné el queso cuando el bife ya está cocido y tapá apenas un minuto: se derrite sin secarse.',
+   '{sin_tacc,sin_frutos_secos}',
+   '{"calorias":460,"perfil":"proteinas","proteinas":42,"carbohidratos":14,"grasas":26}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000149',
+   'Revuelto de huevo con jamón y queso',
+   'salado',
+   'El desayuno proteico que se resuelve en una sola sartén, cremoso y sin drama.',
+   10, 'facil', 1,
+   '[{"orden":1,"texto":"Cortá el jamón y el queso en tiras o cubos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Batí los huevos con sal y pimienta.","tiempo_segundos":null},
+     {"orden":3,"texto":"Dorá el jamón 1 minuto en manteca o aceite, sumá los huevos y mové a fuego medio.","tiempo_segundos":60},
+     {"orden":4,"texto":"Cuando empiece a cuajar, agregá el queso y mové 1 minuto más.","tiempo_segundos":60}]',
+   'Hacelo a fuego medio y sacalo cuando todavía brilla un poco: se termina de cuajar con el calor del plato.',
+   '{sin_tacc,sin_frutos_secos}',
+   '{"calorias":380,"perfil":"proteinas","proteinas":28,"carbohidratos":3,"grasas":28}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000150',
+   'Arroz salteado con espinaca y ajo',
+   'salado',
+   'Un arroz verde, liviano y sabroso que sale con lo que haya en el congelador o la verdulería.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Cociná el arroz con 2 tazas de agua y sal, 15 minutos a fuego medio.","tiempo_segundos":900},
+     {"orden":2,"texto":"Salteá el ajo picado en aceite 30 segundos sin que se dore.","tiempo_segundos":30},
+     {"orden":3,"texto":"Sumá la espinaca en tandas y mové hasta que se ablande.","tiempo_segundos":120},
+     {"orden":4,"texto":"Mezclá el arroz con la espinaca, probá la sal y serví con un huevo frito encima si querés.","tiempo_segundos":null}]',
+   'Agregá la espinaca al final y remové apenas: así queda verde y no se vuelve una pasta.',
+   '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":340,"perfil":"balanceado","proteinas":12,"carbohidratos":52,"grasas":9}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000151',
+   'Calabaza asada con queso crema',
+   'salado',
+   'La calabaza se hace sola en el horno y el queso crema le da cremosidad de risotto sin esfuerzo.',
+   40, 'facil', 2,
+   '[{"orden":1,"texto":"Pelá la calabaza y cortala en cubos de 3 cm.","tiempo_segundos":null},
+     {"orden":2,"texto":"Mezclala con aceite, sal y pimienta, y llevala al horno a 200 grados por 30 minutos.","tiempo_segundos":1800},
+     {"orden":3,"texto":"Servila tibia con el queso crema por encima y la cebolla de verdeo picada.","tiempo_segundos":null}]',
+   'Cortala en cubos parecidos para que se dore pareja, y no la tapes en el horno: la piel crocante es lo mejor.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":290,"perfil":"balanceado","proteinas":8,"carbohidratos":34,"grasas":14}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000152',
+   'Polenta cremosa con queso',
+   'salado',
+   'El socorro del almacén: polenta bien cremosa con queso, lista en 20 minutos y sin misterio.',
+   20, 'facil', 2,
+   '[{"orden":1,"texto":"Herví 2 tazas de leche con media de agua y una pizca de sal.","tiempo_segundos":null},
+     {"orden":2,"texto":"Verté la polenta en lluvia, moviendo siempre con una cuchara de madera.","tiempo_segundos":null},
+     {"orden":3,"texto":"Cociná a fuego bajo 8 minutos, moviendo para que no se pegue.","tiempo_segundos":480},
+     {"orden":4,"texto":"Fuera del fuego, sumá la manteca y el queso rallado y mezclá bien.","tiempo_segundos":null}]',
+   'La polenta se agrupa rápido: movela todo el tiempo que hierva y agregá el queso al final, fuera del fuego.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":420,"perfil":"carbohidratos","proteinas":16,"carbohidratos":52,"grasas":16}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000153',
+   'Zapallitos rellenos de arroz y jamón',
+   'salado',
+   'Los zapallitos que quedaron en la verdulería, convertidos en plato completo con arroz y jamón.',
+   40, 'facil', 2,
+   '[{"orden":1,"texto":"Cortá las puntas de los zapallitos y vacialos con una cuchara; reservá la pulpa picada.","tiempo_segundos":null},
+     {"orden":2,"texto":"Mezclá la pulpa con el arroz precocido, el jamón picado y la cebolla salteada.","tiempo_segundos":600},
+     {"orden":3,"texto":"Rellená los zapallitos, pintalos con puré de tomate y horneá 20 minutos a 200 grados.","tiempo_segundos":1200},
+     {"orden":4,"texto":"Serví calientes con un hilo de aceite.","tiempo_segundos":null}]',
+   'Herví los zapallitos 5 minutos antes de rellenarlos: quedan tiernos y no largan agua en el horno.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":330,"perfil":"balanceado","proteinas":15,"carbohidratos":38,"grasas":12}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000154',
+   'Guiso de lentejas exprés',
+   'salado',
+   'El guiso de invierno de siempre, pero con lentejas de lata que lo bajan a 25 minutos.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Dorá la cebolla picada con aceite 4 minutos; sumá el morrón si usás.","tiempo_segundos":240},
+     {"orden":2,"texto":"Agregá el puré de tomate y el caldo disuelto en 2 tazas de agua caliente.","tiempo_segundos":null},
+     {"orden":3,"texto":"Sumá las lentejas enjuagadas y cociná 10 minutos a fuego bajo.","tiempo_segundos":600},
+     {"orden":4,"texto":"Probá la sal y serví espeso, con pan para el fondo.","tiempo_segundos":null}]',
+   'Las lentejas de lata ya vienen cocidas: enjuagalas y sumalas al final, 5 minutos alcanzan para que tomen el sabor.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":400,"perfil":"balanceado","proteinas":20,"carbohidratos":52,"grasas":11}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000155',
+   'Ensalada de lentejas con zanahoria y verdeo',
+   'salado',
+   'Proteína sin encender el fuego: lentejas de lata, zanahoria rallada y un aliño simple de vinagre.',
+   15, 'cero_cocina', 2,
+   '[{"orden":1,"texto":"Enjuagá las lentejas hasta que el agua salga clara y escurrilas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Rallá la zanahoria y picá la cebolla de verdeo.","tiempo_segundos":null},
+     {"orden":3,"texto":"Mezclá todo con vinagre, aceite, sal y pimienta.","tiempo_segundos":null},
+     {"orden":4,"texto":"Dejá reposar 10 minutos y serví a temperatura ambiente.","tiempo_segundos":600}]',
+   'Rallá la zanahoria fino para que se mezcle con todo, y dejá reposar la ensalada antes de comer.',
+   '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":310,"perfil":"balanceado","proteinas":16,"carbohidratos":40,"grasas":9}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000156',
+   'Ñoquis caseros de papa',
+   'salado',
+   'Los ñoquis del 29 de toda la vida, con la masa más fácil de manejar y cero miedo.',
+   45, 'facil', 3,
+   '[{"orden":1,"texto":"Herví las papas con piel hasta que estén tiernas; pelálas calientes y pisalas bien.","tiempo_segundos":null},
+     {"orden":2,"texto":"Sumá el huevo, la sal y la harina de a poco: amasá apenas hasta formar una masa blanda.","tiempo_segundos":null},
+     {"orden":3,"texto":"Formá tiras, cortá los ñoquis y marcálos con un tenedor.","tiempo_segundos":null},
+     {"orden":4,"texto":"Cocinalos en agua hirviendo hasta que floten y serví con manteca y queso.","tiempo_segundos":120}]',
+   'Usá papas hervidas el día anterior o dejalas secar bien: la masa absorbe menos harina y quedan livianos.',
+   '{vegetariano,sin_frutos_secos}',
+   '{"calorias":430,"perfil":"carbohidratos","proteinas":14,"carbohidratos":68,"grasas":11}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000157',
+   'Licuado de banana y dulce de leche',
+   'dulce',
+   'La merienda que parece postre: banana, leche y dulce de leche licuados en 1 minuto.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Cortá la banana en trozos al vaso de la licuadora.","tiempo_segundos":null},
+     {"orden":2,"texto":"Sumá la leche fría y el dulce de leche.","tiempo_segundos":null},
+     {"orden":3,"texto":"Licuá 30 segundos hasta que quede espumoso.","tiempo_segundos":30}]',
+   'Usá la banana bien madura: es más dulce y no hace falta agregarle nada más.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":310,"perfil":"carbohidratos","proteinas":10,"carbohidratos":52,"grasas":8}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000158',
+   'Manzana asada con miel y nueces',
+   'dulce',
+   'Postre calentito de dos manzanas y un puñado de nueces: el horno hace todo el trabajo.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Lavá las manzanas y vaciá un poquito el centro con una cuchara, sin atravesarlas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Rellená el centro con la miel y las nueces picadas.","tiempo_segundos":null},
+     {"orden":3,"texto":"Horneá 20 minutos a 180 grados en una fuente con un dedo de agua en el fondo.","tiempo_segundos":1200},
+     {"orden":4,"texto":"Serví tibias, con el jugo de la fuente por encima.","tiempo_segundos":null}]',
+   'Hacele un corte al medio sin llegar al fondo para que no exploten en el horno, y servilas tibias.',
+   '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":230,"perfil":"carbohidratos","proteinas":4,"carbohidratos":36,"grasas":9}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000159',
+   'Compota exprés de pera',
+   'dulce',
+   'Peras cocinadas con limón y miel en 15 minutos: dulce natural para postre o para el yogur de mañana.',
+   15, 'facil', 2,
+   '[{"orden":1,"texto":"Pelá las peras, sacales el centro y cortálas en cubos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Ponelas en una olla con el jugo de limón, la miel y 3 cdas de agua.","tiempo_segundos":null},
+     {"orden":3,"texto":"Cociná a fuego bajo 10 minutos, moviendo de vez en cuando, hasta que estén blandas.","tiempo_segundos":600},
+     {"orden":4,"texto":"Comé tibia o fría, así o pisada como puré.","tiempo_segundos":null}]',
+   'Si las peras están muy firmes, agregá 3 cdas de agua más y dale 5 minutos extra: siempre terminan blandas.',
+   '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":150,"perfil":"carbohidratos","proteinas":2,"carbohidratos":36,"grasas":1}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000160',
+   'Frutillas con yogur y dulce de leche',
+   'dulce',
+   'Postre de tres ingredientes y cero cocina: frutillas, yogur y un hilo de dulce de leche.',
+   5, 'cero_cocina', 2,
+   '[{"orden":1,"texto":"Lavá las frutillas, secálas y cortálas en cuartos.","tiempo_segundos":null},
+     {"orden":2,"texto":"Repartí el yogur en dos bowls y cubrí con las frutillas.","tiempo_segundos":null},
+     {"orden":3,"texto":"Regalá el dulce de leche por encima y serví.","tiempo_segundos":null}]',
+   'Lavá las frutillas recién antes de comer y secálas: si quedan mojadas largan agua en el plato.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":240,"perfil":"balanceado","proteinas":9,"carbohidratos":38,"grasas":6}'::jsonb,
    null)
 on conflict (id) do nothing;
 
@@ -1005,7 +1217,96 @@ insert into receta_ingredientes (receta_id, ingrediente_id, cantidad_base, unida
   ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000052', 200, 'g', 'un puñado de frutillas (200 g)', false, 'manzana en cubos'),
   ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000053', 1, 'unidad', '1 lata de duraznos', false, 'pera en gajos'),
   ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000038', 1, 'cda', '1 cda de miel', false, null),
-  ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000023', 1, 'unidad', '1 pote de yogur (opcional)', true, null)
+  ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000023', 1, 'unidad', '1 pote de yogur (opcional)', true, null),
+
+  -- Bifes a la criolla (146)
+  ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000055', 2, 'unidad', '2 bifes de nalga', false, 'pechuga de pollo'),
+  ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000006', 600, 'g', '3 papas en rodajas gruesas', false, null),
+  ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000007', 2, 'unidad', '2 cebollas en plumas', false, null),
+  ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000026', 200, 'g', 'media lata de puré de tomate (opcional)', true, null),
+
+  -- Bifes a la plancha con ensalada criolla (147)
+  ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000055', 2, 'unidad', '2 bifes de nalga', false, 'pechuga de pollo'),
+  ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000008', 2, 'unidad', '2 tomates', false, null),
+  ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000041', 1, 'unidad', '1 atado de cebolla de verdeo', false, null),
+  ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000024', 1, 'unidad', '1 limón', false, null),
+
+  -- Bifes a la napolitana en sartén (148)
+  ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000055', 2, 'unidad', '2 bifes de nalga', false, 'pechuga de pollo'),
+  ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000026', 100, 'g', '4 cdas de puré de tomate', false, null),
+  ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000035', 100, 'g', '2 fetas de queso cremoso o muzzarella', false, null),
+  ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000032', 1, 'pizca', 'orégano a gusto (opcional)', true, null),
+
+  -- Revuelto de huevo con jamón y queso (149)
+  ('00000000-0000-4000-8000-000000000149', '00000000-0000-4000-8000-000000000005', 3, 'unidad', '3 huevos', false, null),
+  ('00000000-0000-4000-8000-000000000149', '00000000-0000-4000-8000-000000000040', 50, 'g', '3 fetas de jamón cortadas en tiras', false, null),
+  ('00000000-0000-4000-8000-000000000149', '00000000-0000-4000-8000-000000000035', 50, 'g', '2 fetas de queso en cubos', false, null),
+  ('00000000-0000-4000-8000-000000000149', '00000000-0000-4000-8000-000000000041', 1, 'unidad', '1 cebolla de verdeo picada (opcional)', true, null),
+
+  -- Arroz salteado con espinaca y ajo (150)
+  ('00000000-0000-4000-8000-000000000150', '00000000-0000-4000-8000-000000000010', 1, 'taza', '1 taza de arroz', false, null),
+  ('00000000-0000-4000-8000-000000000150', '00000000-0000-4000-8000-000000000031', 200, 'g', 'un manojo de espinaca (200 g)', false, 'acelga picada'),
+  ('00000000-0000-4000-8000-000000000150', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo', false, null),
+  ('00000000-0000-4000-8000-000000000150', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos fritos (opcional)', true, null),
+
+  -- Calabaza asada con queso crema (151)
+  ('00000000-0000-4000-8000-000000000151', '00000000-0000-4000-8000-000000000030', 500, 'g', 'media calabaza en cubos (500 g)', false, null),
+  ('00000000-0000-4000-8000-000000000151', '00000000-0000-4000-8000-000000000035', 100, 'g', '4 cdas de queso crema', false, null),
+  ('00000000-0000-4000-8000-000000000151', '00000000-0000-4000-8000-000000000041', 1, 'unidad', '1 cebolla de verdeo picada (opcional)', true, null),
+
+  -- Polenta cremosa con queso (152)
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000049', 100, 'g', 'media taza de polenta', false, null),
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000014', 400, 'ml', '2 tazas de leche', false, 'agua'),
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000012', 40, 'g', 'un puñado de queso rallado', false, 'queso cremoso'),
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000013', 20, 'g', '1 cda de manteca', false, null),
+
+  -- Zapallitos rellenos de arroz y jamón (153)
+  ('00000000-0000-4000-8000-000000000153', '00000000-0000-4000-8000-000000000029', 4, 'unidad', '4 zapallitos', false, null),
+  ('00000000-0000-4000-8000-000000000153', '00000000-0000-4000-8000-000000000010', 100, 'g', 'media taza de arroz', false, null),
+  ('00000000-0000-4000-8000-000000000153', '00000000-0000-4000-8000-000000000040', 50, 'g', '2 fetas de jamón picadas', false, null),
+  ('00000000-0000-4000-8000-000000000153', '00000000-0000-4000-8000-000000000007', 0.5, 'unidad', 'media cebolla picada', false, null),
+  ('00000000-0000-4000-8000-000000000153', '00000000-0000-4000-8000-000000000026', 100, 'g', '4 cdas de puré de tomate (opcional)', true, null),
+
+  -- Guiso de lentejas exprés (154)
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000027', 1, 'unidad', '1 lata de lentejas', false, 'garbanzos en lata'),
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000026', 200, 'g', 'media lata de puré de tomate', false, null),
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla picada', false, null),
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000016', 0.5, 'unidad', 'medio morrón rojo picado (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000051', 1, 'unidad', '1 cubito de caldo', false, null),
+
+  -- Ensalada de lentejas con zanahoria y verdeo (155)
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000027', 1, 'unidad', '1 lata de lentejas', false, 'garbanzos en lata'),
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000015', 1, 'unidad', '1 zanahoria rallada', false, null),
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000041', 1, 'unidad', '1 atado de cebolla de verdeo', false, null),
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000044', 1, 'cda', '1 cda de vinagre', false, null),
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón (opcional)', true, null),
+
+  -- Ñoquis caseros de papa (156)
+  ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000006', 600, 'g', '3 papas', false, null),
+  ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000034', 200, 'g', 'un poco más de una taza de harina', false, null),
+  ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000005', 1, 'unidad', '1 huevo', false, null),
+  ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000012', 30, 'g', 'queso rallado a gusto (opcional)', true, null),
+  ('00000000-0000-4000-8000-000000000156', '00000000-0000-4000-8000-000000000013', 20, 'g', '1 cda de manteca (opcional)', true, null),
+
+  -- Licuado de banana y dulce de leche (157)
+  ('00000000-0000-4000-8000-000000000157', '00000000-0000-4000-8000-000000000021', 1, 'unidad', '1 banana', false, null),
+  ('00000000-0000-4000-8000-000000000157', '00000000-0000-4000-8000-000000000014', 300, 'ml', 'una taza y media de leche', false, null),
+  ('00000000-0000-4000-8000-000000000157', '00000000-0000-4000-8000-000000000054', 2, 'cda', '2 cdas de dulce de leche', false, '1 cda de miel'),
+
+  -- Manzana asada con miel y nueces (158)
+  ('00000000-0000-4000-8000-000000000158', '00000000-0000-4000-8000-000000000037', 2, 'unidad', '2 manzanas', false, null),
+  ('00000000-0000-4000-8000-000000000158', '00000000-0000-4000-8000-000000000038', 2, 'cda', '2 cdas de miel', false, null),
+  ('00000000-0000-4000-8000-000000000158', '00000000-0000-4000-8000-000000000036', 30, 'g', 'un puñado de nueces picadas', false, 'maní picado'),
+
+  -- Compota exprés de pera (159)
+  ('00000000-0000-4000-8000-000000000159', '00000000-0000-4000-8000-000000000048', 2, 'unidad', '2 peras', false, 'manzana en cubos'),
+  ('00000000-0000-4000-8000-000000000159', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón (jugo)', false, null),
+  ('00000000-0000-4000-8000-000000000159', '00000000-0000-4000-8000-000000000038', 1, 'cda', '1 cda de miel', false, null),
+
+  -- Frutillas con yogur y dulce de leche (160)
+  ('00000000-0000-4000-8000-000000000160', '00000000-0000-4000-8000-000000000052', 250, 'g', 'una taza de frutillas (250 g)', false, null),
+  ('00000000-0000-4000-8000-000000000160', '00000000-0000-4000-8000-000000000023', 1, 'unidad', '1 pote de yogur natural', false, null),
+  ('00000000-0000-4000-8000-000000000160', '00000000-0000-4000-8000-000000000054', 2, 'cda', '2 cdas de dulce de leche', false, '1 cda de miel')
 on conflict (receta_id, ingrediente_id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -1089,7 +1390,20 @@ from (values
   ('00000000-0000-4000-8000-000000000143', '00000000-0000-4000-8000-000000000007', '00000000-0000-4000-8000-000000000041'),
   ('00000000-0000-4000-8000-000000000144', '00000000-0000-4000-8000-000000000054', '00000000-0000-4000-8000-000000000038'),
   ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000052', '00000000-0000-4000-8000-000000000037'),
-  ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000053', '00000000-0000-4000-8000-000000000048')
+  ('00000000-0000-4000-8000-000000000145', '00000000-0000-4000-8000-000000000053', '00000000-0000-4000-8000-000000000048'),
+  -- Ronda 146 a 160
+  ('00000000-0000-4000-8000-000000000146', '00000000-0000-4000-8000-000000000055', '00000000-0000-4000-8000-000000000011'),
+  ('00000000-0000-4000-8000-000000000147', '00000000-0000-4000-8000-000000000055', '00000000-0000-4000-8000-000000000011'),
+  ('00000000-0000-4000-8000-000000000148', '00000000-0000-4000-8000-000000000055', '00000000-0000-4000-8000-000000000011'),
+  ('00000000-0000-4000-8000-000000000150', '00000000-0000-4000-8000-000000000031', '00000000-0000-4000-8000-000000000046'),
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000014', '00000000-0000-4000-8000-000000000002'),
+  ('00000000-0000-4000-8000-000000000152', '00000000-0000-4000-8000-000000000012', '00000000-0000-4000-8000-000000000035'),
+  ('00000000-0000-4000-8000-000000000154', '00000000-0000-4000-8000-000000000027', '00000000-0000-4000-8000-000000000028'),
+  ('00000000-0000-4000-8000-000000000155', '00000000-0000-4000-8000-000000000027', '00000000-0000-4000-8000-000000000028'),
+  ('00000000-0000-4000-8000-000000000157', '00000000-0000-4000-8000-000000000054', '00000000-0000-4000-8000-000000000038'),
+  ('00000000-0000-4000-8000-000000000158', '00000000-0000-4000-8000-000000000036', '00000000-0000-4000-8000-000000000047'),
+  ('00000000-0000-4000-8000-000000000159', '00000000-0000-4000-8000-000000000048', '00000000-0000-4000-8000-000000000037'),
+  ('00000000-0000-4000-8000-000000000160', '00000000-0000-4000-8000-000000000054', '00000000-0000-4000-8000-000000000038')
 ) as v(receta_id, ingrediente_id, reemplazo_id)
 where ri.receta_id = v.receta_id::uuid
   and ri.ingrediente_id = v.ingrediente_id::uuid

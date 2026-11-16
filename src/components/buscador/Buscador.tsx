@@ -11,19 +11,12 @@ import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { EtiquetaDieta, Ingrediente } from "@/types";
 import { RESTRICCIONES } from "@/lib/motor-busqueda";
+import { buscarPorTexto } from "@/lib/alias";
 import { filtrosAQuery } from "@/lib/filtros";
 import { usePreferencias } from "@/lib/use-preferencias";
 import { IconoCruz, IconoDado } from "@/components/iconos";
 
 const OPCIONES_TIEMPO = [15, 30, 45] as const;
-
-/** Normaliza para comparar: minúsculas y sin tildes. */
-function normalizar(texto: string): string {
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "");
-}
 
 const CHIP_BASE =
   "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors";
@@ -37,6 +30,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
     preferencias,
     toggleRestriccion,
     setHeladera,
+    toggleSinBasico,
     guardarUltimaBusqueda,
   } = usePreferencias();
 
@@ -51,6 +45,10 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
     [ingredientes],
   );
 
+  // Básicos del catálogo (sal, aceite, orégano…): se muestran como "lo que
+  // siempre tenés" y se pueden desmarcar si no los tenés.
+  const basicos = useMemo(() => ingredientes.filter((i) => i.es_basico), [ingredientes]);
+
   // La heladera vive en las preferencias (localStorage). Filtramos IDs que ya
   // no existen en el catálogo sin duplicar estado: una sola fuente de verdad.
   const seleccionados = useMemo(
@@ -59,11 +57,10 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
   );
 
   const sugerencias = useMemo(() => {
-    const q = normalizar(consulta.trim());
-    if (q.length === 0) return [];
-    return ingredientes
-      .filter((i) => !seleccionados.includes(i.id) && normalizar(i.nombre).includes(q))
-      .slice(0, 8);
+    if (consulta.trim().length === 0) return [];
+    return buscarPorTexto(consulta, ingredientes).filter(
+      (c) => !seleccionados.includes(c.ingrediente.id),
+    );
   }, [consulta, ingredientes, seleccionados]);
 
   function agregar(id: string) {
@@ -94,6 +91,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
       ingredientes: seleccionados,
       restricciones: preferencias.restricciones,
       tiempo_maximo: tiempoMaximo,
+      sin_basicos: preferencias.sin_basicos,
       modo_indeciso: modoIndeciso,
       semilla: modoIndeciso ? Date.now() : undefined,
     });
@@ -106,7 +104,9 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
     .filter(Boolean);
 
   const indiceValido = indiceActivo >= 0 && indiceActivo < sugerencias.length;
-  const idActivo = indiceValido ? `sugerencia-${sugerencias[indiceActivo].id}` : undefined;
+  const idActivo = indiceValido
+    ? `sugerencia-${sugerencias[indiceActivo].ingrediente.id}`
+    : undefined;
 
   return (
     <div className="flex flex-col gap-7">
@@ -170,7 +170,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
                 e.preventDefault();
                 if (listaAbierta && sugerencias.length > 0) {
                   const elegido = sugerencias[indiceValido ? indiceActivo : 0];
-                  agregar(elegido.id);
+                  agregar(elegido.ingrediente.id);
                 } else if (seleccionados.length > 0) {
                   irAHResultados(false);
                 }
@@ -189,29 +189,60 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
               aria-label="Sugerencias de ingredientes"
               className="absolute z-20 mt-1 w-full overflow-hidden rounded-lg border border-linea bg-papel shadow-lg"
             >
-              {sugerencias.map((i, indice) => (
+              {sugerencias.map((c, indice) => (
                 <li
-                  key={i.id}
-                  id={`sugerencia-${i.id}`}
+                  key={c.ingrediente.id}
+                  id={`sugerencia-${c.ingrediente.id}`}
                   role="option"
                   aria-selected={indice === indiceActivo}
                   onMouseDown={(e) => e.preventDefault() /* evita blur antes del click */}
                   onMouseEnter={() => setIndiceActivo(indice)}
-                  onClick={() => agregar(i.id)}
+                  onClick={() => agregar(c.ingrediente.id)}
                   className={`cursor-pointer px-4 py-2.5 text-sm text-tinta transition-colors ${
                     indice === indiceActivo ? "bg-crema" : "hover:bg-crema"
                   }`}
                 >
-                  {i.nombre}
-                  <span className="ml-2 text-xs text-humo">{i.categoria}</span>
+                  {c.ingrediente.nombre}
+                  {c.porAlias && (
+                    <span className="ml-2 text-xs text-verde">también «{consulta.trim()}»</span>
+                  )}
+                  <span className="ml-2 text-xs text-humo">{c.ingrediente.categoria}</span>
                 </li>
               ))}
             </ul>
           )}
         </div>
         <p className="mt-2 text-xs text-humo">
-          La sal, el agua, el aceite y la pimienta se asumen siempre disponibles.
-          Tu heladera queda guardada en este navegador.
+          Buscá por lo que tengas: si escribís «fresa», «maíz» o «churrasco»
+          te lo traducimos a frutillas, choclo y bifes. Tu heladera queda
+          guardada en este navegador.
+        </p>
+      </section>
+
+      {/* ── Lo que siempre tenés (básicos configurables) ───────────────── */}
+      <section>
+        <span className="mb-2 block text-base font-semibold text-tinta">
+          Lo que siempre tenés
+        </span>
+        <div className="flex flex-wrap gap-2">
+          {basicos.map((basico) => {
+            const tenes = !preferencias.sin_basicos.includes(basico.id);
+            return (
+              <button
+                key={basico.id}
+                type="button"
+                aria-pressed={tenes}
+                onClick={() => toggleSinBasico(basico.id)}
+                className={`${CHIP_BASE} ${tenes ? CHIP_ACTIVO : CHIP_INACTIVO}`}
+              >
+                {basico.nombre}
+              </button>
+            );
+          })}
+        </div>
+        <p className="mt-2 text-xs text-humo">
+          Sal, agua, aceite y especias se asumen siempre disponibles. Si no
+          tenés alguno, destapalo: va a aparecer en la lista de compras.
         </p>
       </section>
 

@@ -20,6 +20,7 @@ import { useTimers } from "@/components/timers/TimerProvider";
 import { usePreferencias } from "@/lib/use-preferencias";
 import { BotonFavorito } from "@/components/BotonFavorito";
 import { PlaceholderImagen } from "@/components/PlaceholderImagen";
+import { FeedbackReceta } from "@/components/receta/FeedbackReceta";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
 import {
   IconoCheck,
@@ -32,10 +33,11 @@ const PORCION_MAXIMA = 12;
 
 export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
   const { iniciar } = useTimers();
-  const { preferencias, hidratado } = usePreferencias();
+  const { preferencias, hidratado, marcarCocinada, quitarCocinada } = usePreferencias();
   const ultimaBusqueda = hidratado ? preferencias.ultima_busqueda : null;
   const volverHref = ultimaBusqueda ? `/resultados?${ultimaBusqueda}` : "/";
   const volverTexto = ultimaBusqueda ? "Volver a resultados" : "Volver a la heladera";
+  const yaCocinada = hidratado && preferencias.cocinadas.some((r) => r.receta_id === receta.id);
   const [porciones, setPorciones] = useState(receta.porciones_base);
   const [hechoIngredientes, setHechoIngredientes] = useState<Set<string>>(new Set());
   const [hechoPasos, setHechoPasos] = useState<Set<number>>(new Set());
@@ -83,6 +85,7 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
           <PlaceholderImagen
             titulo={receta.titulo}
             url={receta.imagen_url}
+            categoria={receta.categoria}
             className="h-20 w-20 shrink-0 rounded-xl sm:h-24 sm:w-24"
           />
           <div className="min-w-0 flex-1">
@@ -105,6 +108,21 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
             </p>
           </div>
         </div>
+        <button
+          type="button"
+          aria-pressed={yaCocinada}
+          onClick={() =>
+            yaCocinada ? quitarCocinada(receta.id) : marcarCocinada(receta.id)
+          }
+          className={`mt-4 inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm font-semibold transition-colors ${
+            yaCocinada
+              ? "border-verde bg-verde-tenue text-verde"
+              : "border-linea bg-papel text-tinta-suave hover:border-verde hover:text-verde"
+          }`}
+        >
+          <IconoCheck className="h-4 w-4" />
+          {yaCocinada ? "Cocinada · quitar del historial" : "La cociné"}
+        </button>
       </header>
 
       {/* ── Ajustador de porciones ─────────────────────────────────────── */}
@@ -249,6 +267,9 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
       </section>
 
       <DisclaimerNutricional />
+      <div className="mt-6">
+        <FeedbackReceta recetaId={receta.id} />
+      </div>
     </main>
   );
 }

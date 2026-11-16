@@ -87,6 +87,7 @@ export function ListaFavoritos({ recetas }: { recetas: ResumenReceta[] }) {
                 <PlaceholderImagen
                   titulo={receta.titulo}
                   url={receta.imagen_url}
+                  categoria={receta.categoria}
                   className="h-20 w-20 rounded-lg sm:h-24 sm:w-24"
                 />
               </Link>
