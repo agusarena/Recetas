@@ -7,9 +7,19 @@ describe("seed.sql", () => {
   const idsRecetas = new Set(semilla.recetas.map((r) => r.id));
 
   it("parsea el catálogo completo", () => {
-    expect(semilla.ingredientes).toHaveLength(55);
-    expect(semilla.recetas).toHaveLength(60);
-    expect(semilla.relaciones.length).toBeGreaterThanOrEqual(230);
+    expect(semilla.ingredientes).toHaveLength(68);
+    expect(semilla.recetas).toHaveLength(100);
+    expect(semilla.relaciones.length).toBeGreaterThanOrEqual(360);
+  });
+
+  it("cada receta tiene al menos un protagonista, y es obligatorio", () => {
+    for (const receta of semilla.recetas) {
+      const principales = receta.ingredientes.filter((ri) => ri.es_principal);
+      expect(principales.length, receta.titulo).toBeGreaterThan(0);
+      for (const ri of principales) {
+        expect(ri.es_opcional, receta.titulo).toBe(false);
+      }
+    }
   });
 
   it("no tiene relaciones huérfanas ni recetas vacías", () => {
@@ -89,6 +99,11 @@ describe("seed.sql", () => {
     // Las que usan carne picada encabezan la lista: ninguna receta ajena va antes.
     const primeras = resultados.slice(0, usanCarne.length);
     expect(primeras).toEqual(usanCarne);
-    expect(resultados[0].receta.titulo).toContain("Empanadas");
+    // Y la primera es una donde la carne es protagonista del plato.
+    expect(
+      resultados[0].receta.ingredientes.some(
+        (ri) => ri.ingrediente_id === carne!.id && ri.es_principal,
+      ),
+    ).toBe(true);
   });
 });

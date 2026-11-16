@@ -61,7 +61,7 @@ const COLS_RECETA =
  * Es un template literal (no un join): el tipo literal es lo que permite
  * a supabase-js inferir la forma de las filas en el cliente.
  */
-const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, reemplazo_sugerido, reemplazo_ingrediente_id, ingrediente:ingredientes!receta_ingredientes_ingrediente_id_fkey(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
+const SELECCION_RECETA_INGREDIENTE = `receta_id, ingrediente_id, cantidad_base, unidad, texto_principiante, es_opcional, es_principal, reemplazo_sugerido, reemplazo_ingrediente_id, ingrediente:ingredientes!receta_ingredientes_ingrediente_id_fkey(${COLS_INGREDIENTE}), receta:recetas(${COLS_RECETA})`;
 
 /** Un uuid v4-ish: suficiente para descartar basura de URL antes de SQL. */
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -79,6 +79,7 @@ type FilaRecetaIngrediente = {
   unidad: string;
   texto_principiante: string | null;
   es_opcional: boolean;
+  es_principal: boolean;
   reemplazo_sugerido: string | null;
   reemplazo_ingrediente_id: string | null;
   ingrediente: Record<string, unknown> | null;
@@ -165,6 +166,7 @@ function normalizarRecetaIngrediente(fila: any): RecetaIngredienteConDetalle {
     unidad: UNIDADES_VALIDAS.has(fila.unidad) ? (fila.unidad as Unidad) : "unidad",
     texto_principiante: fila.texto_principiante == null ? null : String(fila.texto_principiante),
     es_opcional: Boolean(fila.es_opcional),
+    es_principal: Boolean(fila.es_principal),
     reemplazo_sugerido: fila.reemplazo_sugerido == null ? null : String(fila.reemplazo_sugerido),
     reemplazo_ingrediente_id:
       fila.reemplazo_ingrediente_id == null ? null : String(fila.reemplazo_ingrediente_id),

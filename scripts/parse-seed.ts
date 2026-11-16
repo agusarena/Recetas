@@ -139,12 +139,12 @@ function parsearRelaciones(
   const bloque = seccion(
     sql,
     "insert into receta_ingredientes",
-    "on conflict (receta_id, ingrediente_id) do nothing;",
+    "on conflict (receta_id, ingrediente_id) do update set es_principal = excluded.es_principal;",
   );
   const reemplazos = parsearReemplazos(sql);
   const porId = new Map(ingredientes.map((i) => [i.id, i]));
   const regex =
-    /^\s*\('([0-9a-f-]{36})',\s*'([0-9a-f-]{36})',\s*([\d.]+),\s*'([a-z]+)',\s*'([^']*)',\s*(true|false),\s*(null|'([^']*)')\)/gm;
+    /^\s*\('([0-9a-f-]{36})',\s*'([0-9a-f-]{36})',\s*([\d.]+),\s*'([a-z]+)',\s*'([^']*)',\s*(true|false),\s*(true|false),\s*(null|'([^']*)')\)/gm;
 
   return [...bloque.matchAll(regex)].map((m) => {
     const ingrediente = porId.get(m[2]);
@@ -157,7 +157,8 @@ function parsearRelaciones(
       unidad: (UNIDADES.has(m[4] as Unidad) ? m[4] : "unidad") as Unidad,
       texto_principiante: null,
       es_opcional: m[6] === "true",
-      reemplazo_sugerido: m[8] ? desescapar(m[8]) : null,
+      es_principal: m[7] === "true",
+      reemplazo_sugerido: m[9] ? desescapar(m[9]) : null,
       reemplazo_ingrediente_id: reemplazos.get(`${m[1]}:${m[2]}`) ?? null,
       ingrediente,
     };

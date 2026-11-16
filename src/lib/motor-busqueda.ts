@@ -12,8 +12,9 @@
  *  2. Cálculo de coincidencia sobre ingredientes OBLIGATORIOS
  *     (se ignoran es_basico y es_opcional).
  *  3. Ranking por RELEVANCIA: si marcaste algo, solo se muestran recetas
- *     que usan lo tuyo (salados antes que dulces a igual cercanía); si no
- *     hay ninguna, aparecen las más cercanas para no dejar vacía la lista.
+ *     que usan lo tuyo, ordenadas por cercanía y después por cuánto de tu
+ *     heladera aprovechan (salados antes que dulces a igual relevancia); si
+ *     no hay ninguna, aparecen las más cercanas para no dejar vacía la lista.
  */
 import type {
   Alergeno,
@@ -158,11 +159,36 @@ function evaluarObligatorios(
   return { faltantes, reemplazos_usados };
 }
 
+/** Peso de cuánto de la receta cubrís, en la relevancia. */
+const PESO_COBERTURA = 0.5;
+/** Peso de cuánto de tu heladera usa la receta, en la relevancia. */
+const PESO_USO_HELADERA = 0.5;
+/** Un protagonista pesa el doble que un acompañamiento o condimento. */
+const PESO_PRINCIPAL = 2;
+
+function pesoIngrediente(ri: RecetaIngredienteConDetalle): number {
+  return ri.es_principal ? PESO_PRINCIPAL : 1;
+}
+
+/** true si la heladera cubre el obligatorio, directo o por reemplazo. */
+function estaCubierto(ri: RecetaIngredienteConDetalle, heladera: Set<string>): boolean {
+  if (heladera.has(ri.ingrediente_id)) return true;
+  const reemplazoId = ri.reemplazo_ingrediente_id;
+  return Boolean(reemplazoId && reemplazoId !== ri.ingrediente_id && heladera.has(reemplazoId));
+}
+
 /**
  * Evalúa una receta contra el pantry del usuario.
  * Siempre devuelve resultado: con 3 o más faltantes el nivel es `falta_varios`
  * (la lista de faltantes queda completa, que es lo que muestra la lista de
  * compras).
+ *
+ * La relevancia combina dos proporciones, ponderadas por protagonista:
+ *  - cobertura: peso de los obligatorios cubiertos / peso de los obligatorios.
+ *    Te falta el pollo de una milanesa → pesa más que te falte el pan rallado.
+ *  - uso de tu heladera: peso de tus ingredientes que la receta usa / peso
+ *    máximo posible (todo como protagonista: 2 × cantidad de tu heladera).
+ *    Usar un protagonista de tu heladera vale más que usar un condimento.
  */
 export function evaluarCoincidencia(
   receta: RecetaConIngredientes,
@@ -170,7 +196,13 @@ export function evaluarCoincidencia(
   sinBasicos?: Set<string>,
 ): Pick<
   ResultadoBusqueda,
-  "nivel" | "coincidentes" | "obligatorios_totales" | "faltantes" | "reemplazos_usados"
+  | "nivel"
+  | "coincidentes"
+  | "obligatorios_totales"
+  | "faltantes"
+  | "reemplazos_usados"
+  | "usados"
+  | "relevancia"
 > {
   const obligatorios = ingredientesObligatorios(receta, sinBasicos);
   const { faltantes, reemplazos_usados } = evaluarObligatorios(obligatorios, ingredientesUsuario);
@@ -184,12 +216,31 @@ export function evaluarCoincidencia(
           ? ("falta_dos" as const)
           : ("falta_varios" as const);
 
+  const heladera = new Set(ingredientesUsuario);
+  const pesoObligatorios = obligatorios.reduce((suma, ri) => suma + pesoIngrediente(ri), 0);
+  const pesoCubierto = obligatorios
+    .filter((ri) => estaCubierto(ri, heladera))
+    .reduce((suma, ri) => suma + pesoIngrediente(ri), 0);
+  const cobertura = pesoObligatorios === 0 ? 1 : pesoCubierto / pesoObligatorios;
+
+  const usadosEnReceta = receta.ingredientes.filter((ri) => heladera.has(ri.ingrediente_id));
+  const usados = usadosEnReceta.map((ri) => ri.ingrediente.nombre);
+  const pesoUsado = usadosEnReceta.reduce((suma, ri) => suma + pesoIngrediente(ri), 0);
+  const usoHeladera =
+    heladera.size === 0 ? 0 : pesoUsado / (PESO_PRINCIPAL * heladera.size);
+
+  const coincidentes = obligatorios.length - faltantes.length;
+  const relevancia =
+    Math.round((PESO_COBERTURA * cobertura + PESO_USO_HELADERA * usoHeladera) * 1000) / 1000;
+
   return {
     nivel,
-    coincidentes: obligatorios.length - faltantes.length,
+    coincidentes,
     obligatorios_totales: obligatorios.length,
     faltantes,
     reemplazos_usados,
+    usados,
+    relevancia,
   };
 }
 
@@ -218,7 +269,8 @@ const RANGO_NIVEL: Record<NivelCoincidencia, number> = {
  * Orden global del ranking (ver `buscarRecetas`):
  *  1. Usa tus ingredientes antes que una receta ajena a tu heladera.
  *  2. Dentro de cada grupo: lo más cercano a cocinable primero.
- *  3. A igual cercanía, salado antes que dulce (así choclo y atún no
+ *  3. A igual cercanía, la mayor relevancia (usa más de lo tuyo).
+ *  4. A igual relevancia, salado antes que dulce (así choclo y atún no
  *     compiten contra un postre), y después menor esfuerzo.
  */
 function compararResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number {
@@ -227,6 +279,8 @@ function compararResultados(a: ResultadoBusqueda, b: ResultadoBusqueda): number 
   if (relevanteA !== relevanteB) return relevanteA - relevanteB;
 
   if (a.nivel !== b.nivel) return RANGO_NIVEL[a.nivel] - RANGO_NIVEL[b.nivel];
+
+  if (a.relevancia !== b.relevancia) return b.relevancia - a.relevancia;
 
   const dulceA = a.receta.categoria === "dulce" ? 1 : 0;
   const dulceB = b.receta.categoria === "dulce" ? 1 : 0;

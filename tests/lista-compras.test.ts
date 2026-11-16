@@ -25,6 +25,7 @@ function rel(
     unidad,
     texto_principiante: texto,
     es_opcional: false,
+    es_principal: false,
     reemplazo_sugerido: null,
     reemplazo_ingrediente_id: null,
     ingrediente,

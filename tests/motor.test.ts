@@ -34,6 +34,7 @@ function rel(
   ingrediente: Ingrediente,
   opciones: {
     opcional?: boolean;
+    principal?: boolean;
     reemplazo?: string | null;
     reemplazoId?: string | null;
     cantidad?: number;
@@ -47,6 +48,7 @@ function rel(
     unidad: opciones.unidad ?? "unidad",
     texto_principiante: null,
     es_opcional: opciones.opcional ?? false,
+    es_principal: opciones.principal ?? false,
     reemplazo_sugerido: opciones.reemplazo ?? null,
     reemplazo_ingrediente_id: opciones.reemplazoId ?? null,
     ingrediente,
@@ -191,13 +193,43 @@ describe("motor de búsqueda", () => {
     expect(resultado?.reemplazos_usados).toEqual([]);
   });
 
-  it("ordena por tiempo y dificultad dentro del mismo nivel", () => {
+  it("dentro del mismo nivel, primero la receta que usa más de tu heladera", () => {
+    // Tortilla usa 4 de tus 5 ingredientes; omelette, 2. Aunque la omelette
+    // tarde 10 min, la tortilla aprovecha mejor lo que ya tenés.
     const resultados = buscarRecetas(
       CATALOGO,
       filtros(["papa", "huevo", "cebolla", "queso", "sal"]),
     );
-    expect(resultados[0].receta.id).toBe("omelette");
-    expect(resultados.findIndex((r) => r.receta.id === "tortilla")).toBeGreaterThan(0);
+    expect(resultados.map((r) => r.receta.id).slice(0, 2)).toEqual(["tortilla", "omelette"]);
+  });
+
+  it("a igual relevancia, la receta más rápida va primero", () => {
+    const rapida = receta("rapida", {
+      tiempo: 5,
+      ingredientes: [rel("rapida", huevo)],
+    });
+    const lenta = receta("lenta", {
+      tiempo: 40,
+      ingredientes: [rel("lenta", huevo)],
+    });
+    const resultados = buscarRecetas([lenta, rapida], filtros(["huevo"]));
+    expect(resultados.map((r) => r.receta.id)).toEqual(["rapida", "lenta"]);
+  });
+
+  it("ordena por cobertura: una receta casi completa va antes que otra con más faltantes relativos", () => {
+    // Ambas faltan 1 ingrediente. Milanesas cubre 2 de 3 con lo que tenés;
+    // omelette, 1 de 2. Milanesas tarda más pero aprovecha más la heladera.
+    const milanesas = receta("milanesas", {
+      tiempo: 35,
+      ingredientes: [rel("milanesas", pollo), rel("milanesas", huevo), rel("milanesas", pan)],
+    });
+    const resultados = buscarRecetas(
+      [CATALOGO[1], milanesas],
+      filtros(["huevo", "pan", "palta"]),
+    );
+    expect(resultados.map((r) => r.receta.id)).toEqual(["milanesas", "omelette"]);
+    expect(resultados[0].usados).toEqual(["Huevos", "Pan"]);
+    expect(resultados[0].relevancia).toBeGreaterThan(resultados[1].relevancia);
   });
 
   it("no muestra recetas ajenas cuando hay recetas con tus ingredientes", () => {
@@ -240,13 +272,13 @@ describe("motor de búsqueda", () => {
     expect(normal[0]?.receta.id).toBe("tortilla");
     expect(normal[0]?.nivel).toBe("tenes_todo");
 
-    // El usuario dice que NO tiene sal: la tortilla pasa a faltar 1 y el
-    // omelette (que no pide sal) queda primero.
+    // El usuario dice que NO tiene sal: la tortilla pasa a faltar 1, pero
+    // sigue primera porque usa todo lo que marcó (la omelette solo usa huevo).
     const sinSal = buscarRecetas(
       CATALOGO,
       filtros(["papa", "huevo", "cebolla"], { sin_basicos: ["sal"] }),
     );
-    expect(sinSal[0]?.receta.id).toBe("omelette");
+    expect(sinSal[0]?.receta.id).toBe("tortilla");
     const tortilla = sinSal.find((r) => r.receta.id === "tortilla");
     expect(tortilla?.nivel).toBe("falta_uno");
     expect(tortilla?.faltantes[0]?.nombre).toBe("Sal");
@@ -315,5 +347,47 @@ describe("motor de búsqueda", () => {
     expect(a).toEqual(b);
     expect(a.length).toBeLessThanOrEqual(3);
     expect(c).not.toEqual(a);
+  });
+
+  it("a igual cobertura, pesa más tener el protagonista que un acompañamiento", () => {
+    // Ambas recetas piden palta y tomate, y el usuario tiene solo la palta.
+    // En una la palta es el protagonista; en la otra, el tomate.
+    const conPalta = receta("con-palta", {
+      ingredientes: [
+        rel("con-palta", palta, { principal: true }),
+        rel("con-palta", tomate),
+      ],
+    });
+    const conTomate = receta("con-tomate", {
+      ingredientes: [
+        rel("con-tomate", palta),
+        rel("con-tomate", tomate, { principal: true }),
+      ],
+    });
+    const resultados = buscarRecetas([conTomate, conPalta], filtros(["palta"]));
+    expect(resultados.map((r) => r.receta.id)).toEqual(["con-palta", "con-tomate"]);
+    expect(resultados[0].relevancia).toBeGreaterThan(resultados[1].relevancia);
+  });
+
+  it("faltar un protagonista pesa más que faltar un acompañamiento", () => {
+    const faltaPrincipal = receta("falta-principal", {
+      ingredientes: [
+        rel("falta-principal", pollo, { principal: true }),
+        rel("falta-principal", pan),
+      ],
+    });
+    const faltaSecundario = receta("falta-secundario", {
+      ingredientes: [
+        rel("falta-secundario", pollo),
+        rel("falta-secundario", pan, { principal: true }),
+      ],
+    });
+    const [primera, segunda] = [
+      evaluarCoincidencia(faltaPrincipal, ["pan"]),
+      evaluarCoincidencia(faltaSecundario, ["pan"]),
+    ];
+    expect(primera.nivel).toBe("falta_uno");
+    expect(segunda.nivel).toBe("falta_uno");
+    expect(segunda.relevancia).toBeGreaterThan(primera.relevancia);
   });
 });

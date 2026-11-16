@@ -29,10 +29,10 @@ const CATALOGO: RecetaConIngredientes[] = [
     macros_generales: { calorias: 0, perfil: "", proteinas: 0, carbohidratos: 0, grasas: 0 },
     imagen_url: null,
     ingredientes: [
-      { receta_id: "tortilla", ingrediente_id: "papa", cantidad_base: 600, unidad: "g", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("papa", "Papa") },
-      { receta_id: "tortilla", ingrediente_id: "huevo", cantidad_base: 4, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
-      { receta_id: "tortilla", ingrediente_id: "cebolla", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: "cebolla de verdeo", reemplazo_ingrediente_id: null, ingrediente: ing("cebolla", "Cebolla") },
-      { receta_id: "tortilla", ingrediente_id: "sal", cantidad_base: 1, unidad: "pizca", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("sal", "Sal", true) },
+      { receta_id: "tortilla", ingrediente_id: "papa", cantidad_base: 600, unidad: "g", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("papa", "Papa") },
+      { receta_id: "tortilla", ingrediente_id: "huevo", cantidad_base: 4, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
+      { receta_id: "tortilla", ingrediente_id: "cebolla", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: "cebolla de verdeo", reemplazo_ingrediente_id: null, ingrediente: ing("cebolla", "Cebolla") },
+      { receta_id: "tortilla", ingrediente_id: "sal", cantidad_base: 1, unidad: "pizca", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("sal", "Sal", true) },
     ],
   },
   // Omelette (10 min, cero cocina) — vegetariano/sin_tacc
@@ -50,8 +50,8 @@ const CATALOGO: RecetaConIngredientes[] = [
     macros_generales: { calorias: 0, perfil: "", proteinas: 0, carbohidratos: 0, grasas: 0 },
     imagen_url: null,
     ingredientes: [
-      { receta_id: "omelette", ingrediente_id: "huevo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
-      { receta_id: "omelette", ingrediente_id: "queso", cantidad_base: 2, unidad: "cda", texto_principiante: null, es_opcional: false, reemplazo_sugerido: "queso cremoso", reemplazo_ingrediente_id: null, ingrediente: ing("queso", "Queso rallado", false, ["lactosa"]) },
+      { receta_id: "omelette", ingrediente_id: "huevo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
+      { receta_id: "omelette", ingrediente_id: "queso", cantidad_base: 2, unidad: "cda", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: "queso cremoso", reemplazo_ingrediente_id: null, ingrediente: ing("queso", "Queso rallado", false, ["lactosa"]) },
     ],
   },
   // Tostada de palta (10 min) — pan → gluten: NO apta sin_tacc
@@ -69,9 +69,9 @@ const CATALOGO: RecetaConIngredientes[] = [
     macros_generales: { calorias: 0, perfil: "", proteinas: 0, carbohidratos: 0, grasas: 0 },
     imagen_url: null,
     ingredientes: [
-      { receta_id: "palta", ingrediente_id: "pan", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("pan", "Pan", false, ["gluten"]) },
-      { receta_id: "palta", ingrediente_id: "palta", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("palta", "Palta") },
-      { receta_id: "palta", ingrediente_id: "tomate", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
+      { receta_id: "palta", ingrediente_id: "pan", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("pan", "Pan", false, ["gluten"]) },
+      { receta_id: "palta", ingrediente_id: "palta", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("palta", "Palta") },
+      { receta_id: "palta", ingrediente_id: "tomate", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
     ],
   },
   // Ensalada de atún (10 min) — huevo OPCIONAL no cuenta
@@ -89,9 +89,9 @@ const CATALOGO: RecetaConIngredientes[] = [
     macros_generales: { calorias: 0, perfil: "", proteinas: 0, carbohidratos: 0, grasas: 0 },
     imagen_url: null,
     ingredientes: [
-      { receta_id: "atun", ingrediente_id: "atun", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("atun", "Atún en lata", false, ["pescado"]) },
-      { receta_id: "atun", ingrediente_id: "tomate", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
-      { receta_id: "atun", ingrediente_id: "huevo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: true, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
+      { receta_id: "atun", ingrediente_id: "atun", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("atun", "Atún en lata", false, ["pescado"]) },
+      { receta_id: "atun", ingrediente_id: "tomate", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
+      { receta_id: "atun", ingrediente_id: "huevo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: true, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("huevo", "Huevos", false, ["huevo"]) },
     ],
   },
   // Guiso de arroz con pollo (35 min, 5 obligatorios) — para Nivel 3
@@ -109,11 +109,11 @@ const CATALOGO: RecetaConIngredientes[] = [
     macros_generales: { calorias: 0, perfil: "", proteinas: 0, carbohidratos: 0, grasas: 0 },
     imagen_url: null,
     ingredientes: [
-      { receta_id: "guiso", ingrediente_id: "arroz", cantidad_base: 2, unidad: "taza", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("arroz", "Arroz") },
-      { receta_id: "guiso", ingrediente_id: "pollo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("pollo", "Pechuga de pollo") },
-      { receta_id: "guiso", ingrediente_id: "tomate", cantidad_base: 3, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: "1 lata de tomate triturado", reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
-      { receta_id: "guiso", ingrediente_id: "morrón", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("morrón", "Morrón rojo") },
-      { receta_id: "guiso", ingrediente_id: "zanahoria", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("zanahoria", "Zanahoria") },
+      { receta_id: "guiso", ingrediente_id: "arroz", cantidad_base: 2, unidad: "taza", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("arroz", "Arroz") },
+      { receta_id: "guiso", ingrediente_id: "pollo", cantidad_base: 2, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("pollo", "Pechuga de pollo") },
+      { receta_id: "guiso", ingrediente_id: "tomate", cantidad_base: 3, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: "1 lata de tomate triturado", reemplazo_ingrediente_id: null, ingrediente: ing("tomate", "Tomate") },
+      { receta_id: "guiso", ingrediente_id: "morrón", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("morrón", "Morrón rojo") },
+      { receta_id: "guiso", ingrediente_id: "zanahoria", cantidad_base: 1, unidad: "unidad", texto_principiante: null, es_opcional: false, es_principal: false, reemplazo_sugerido: null, reemplazo_ingrediente_id: null, ingrediente: ing("zanahoria", "Zanahoria") },
     ],
   },
 ];

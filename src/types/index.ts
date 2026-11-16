@@ -100,6 +100,8 @@ export interface RecetaIngrediente {
   /** Texto orientado a principiantes: ej. "un puñado (más o menos 50 g)". */
   texto_principiante: string | null;
   es_opcional: boolean;
+  /** true = ingrediente protagonista del plato; pesa más en el ranking. */
+  es_principal: boolean;
   /** Texto libre que se muestra como sugerencia de reemplazo. */
   reemplazo_sugerido: string | null;
   /**
@@ -190,6 +192,13 @@ export interface ResultadoBusqueda {
   faltantes: IngredienteFaltante[];
   /** Ingredientes cubiertos por un reemplazo que el usuario ya tiene. */
   reemplazos_usados: ReemplazoUsado[];
+  /** Nombres de los ingredientes de tu heladera que la receta usa (para mostrar "Usa: ..."). */
+  usados: string[];
+  /**
+   * 0 a 1. Mezcla cuánto de la receta cubrís y cuánto de tu heladera usa.
+   * Ordena las recetas dentro del mismo nivel de cercanía.
+   */
+  relevancia: number;
 }
 
 /** Respuesta del endpoint /api/buscar (y del motor en general). */

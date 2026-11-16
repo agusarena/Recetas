@@ -14,7 +14,8 @@ Correr los archivos en este orden (cada migración asume las anteriores):
 | 2 | `migrations/0002_seguridad_e_indices.sql` | Revoke de escrituras + drop de índice redundante |
 | 3 | `migrations/0003_reemplazos.sql` | Columna `reemplazo_ingrediente_id` + FK + índice |
 | 4 | `migrations/0004_categoria.sql` | Columna `recetas.categoria` (`salado`/`dulce`) |
-| 5 | `seed.sql` | Catálogo: 55 ingredientes + 60 recetas |
+| 5 | `migrations/0005_principal.sql` | Columna `receta_ingredientes.es_principal` (protagonista del plato) |
+| 6 | `seed.sql` | Catálogo: 68 ingredientes + 100 recetas |
 
 Desde el dashboard de Supabase: pegar cada archivo en el SQL Editor, en
 ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
@@ -23,9 +24,10 @@ ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
 `seed.sql` es **idempotente** y transaccional: se puede volver a correr
 sin duplicar filas ni dejar el catálogo a medias.
 
-> **Si ya tenías el catálogo cargado:** aplicá `0003` y `0004` y volvé a
-> correr `seed.sql`. Las migraciones agregan las columnas y el seed completa
-> los IDs de los reemplazos. Correr el seed antes de `0003` falla porque la
+> **Si ya tenías el catálogo cargado:** aplicá `0003`, `0004` y `0005` y
+> volvé a correr `seed.sql`. Las migraciones agregan las columnas y el seed
+> completa los IDs de los reemplazos y los protagonistas (`es_principal`)
+> de las relaciones existentes. Correr el seed antes de `0003` falla porque la
 > columna todavía no existe.
 
 ## Convenciones
@@ -76,7 +78,7 @@ select
   (select count(*) from receta_ingredientes) as relaciones;
 ```
 
-Reemplazos verificables (debe devolver 20 filas tras el seed):
+Reemplazos verificables (debe devolver 72 filas tras el seed):
 
 ```sql
 select count(*) as reemplazos_vinculados

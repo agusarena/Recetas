@@ -35,6 +35,7 @@ function rel(
     unidad: "unidad",
     texto_principiante: null,
     es_opcional: opciones.opcional ?? false,
+    es_principal: false,
     reemplazo_sugerido: null,
     reemplazo_ingrediente_id: opciones.reemplazoId ?? null,
     ingrediente,

@@ -116,6 +116,12 @@ export function TarjetaReceta({
           </Link>
         </div>
 
+        {resultado.usados.length > 0 && !modoIndeciso && (
+          <p className="mt-1.5 text-xs font-semibold text-verde">
+            Usa lo tuyo: {resultado.usados.join(", ")}
+          </p>
+        )}
+
         {resultado.faltantes.length > 0 && (
           <div className="mt-2">
             <BotonListaCompras
