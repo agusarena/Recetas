@@ -207,7 +207,7 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
                 onClick={() => togglePaso(paso.orden)}
                 className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors ${
                   hechoPasos.has(paso.orden)
-                    ? "border-verde bg-verde text-papel"
+                    ? "border-verde bg-verde text-sobre-acento"
                     : "border-linea bg-papel text-transparent hover:border-verde"
                 }`}
               >
@@ -308,7 +308,7 @@ function FilaIngrediente({
         onClick={onToggle}
         className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded border-2 transition-colors ${
           hecha
-            ? "border-verde bg-verde text-papel"
+            ? "border-verde bg-verde text-sobre-acento"
             : "border-linea bg-papel text-transparent hover:border-verde"
         }`}
       >

@@ -4,6 +4,7 @@ import { TimerProvider } from "@/components/timers/TimerProvider";
 import { BarraTimers } from "@/components/timers/BarraTimers";
 import { SitioHeader } from "@/components/SitioHeader";
 import { ServiceWorkerRegistro } from "@/components/ServiceWorkerRegistro";
+import { SCRIPT_TEMA_INICIAL } from "@/lib/tema";
 import "./globals.css";
 
 /** Títulos y números destacados: serif editorial con carácter propio. */
@@ -34,16 +35,19 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#1e5c45",
-  colorScheme: "light",
+  colorScheme: "light dark",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="es"
+      suppressHydrationWarning
       className={`${fraunces.variable} ${instrumentSans.variable} h-full antialiased`}
     >
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA_INICIAL }} />
+      </head>
       <body className="min-h-full flex flex-col">
         <TimerProvider>
           <SitioHeader />

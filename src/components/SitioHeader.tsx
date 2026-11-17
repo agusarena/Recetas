@@ -1,11 +1,12 @@
-/** Cabecera mínima del sitio: marca y accesos principales. */
+/** Cabecera mínima del sitio: marca, accesos principales y tema. */
 import Link from "next/link";
 import { IconoCorazon, IconoOlla } from "@/components/iconos";
+import { SelectorTema } from "@/components/SelectorTema";
 
 export function SitioHeader() {
   return (
     <header className="border-b border-linea">
-      <div className="mx-auto flex w-full max-w-3xl items-center justify-between gap-4 px-4 py-3">
+      <div className="mx-auto flex w-full max-w-3xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-3">
         <Link
           href="/"
           className="inline-flex items-center gap-2 font-display text-base font-semibold text-tinta transition-colors hover:text-verde"
@@ -38,6 +39,8 @@ export function SitioHeader() {
             Historial
           </Link>
         </nav>
+
+        <SelectorTema />
       </div>
     </header>
   );

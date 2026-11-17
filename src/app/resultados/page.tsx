@@ -24,7 +24,7 @@ import { IconoFlechaIzquierda } from "@/components/iconos";
 const ETIQUETA_RESTRICCION = new Map(RESTRICCIONES.map((r) => [r.valor, r.etiqueta]));
 
 const CHIP_BASE = "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors";
-const CHIP_ACTIVO = "border-verde bg-verde text-papel";
+const CHIP_ACTIVO = "border-verde bg-verde text-sobre-acento";
 const CHIP_INACTIVO =
   "border-linea bg-papel text-tinta hover:border-verde hover:text-verde";
 

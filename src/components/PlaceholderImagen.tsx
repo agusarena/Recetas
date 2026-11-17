@@ -11,10 +11,10 @@ import { imagenGratisParaReceta } from "@/lib/imagenes-recetas";
 
 /** Pares de tonos apagados (fondo / tinta) con aire de recetario. */
 const TONOS = [
-  { fondo: "#e8f0ec", tinta: "#1e5c45" }, // verde albahaca tenue
-  { fondo: "#f9ede6", tinta: "#bf4318" }, // tomate tenue
-  { fondo: "#f7f5f0", tinta: "#55524b" }, // crema y gris cálido
-  { fondo: "#ede9e1", tinta: "#75716a" },
+  { fondo: "var(--color-verde-tenue)", tinta: "var(--color-verde)" },
+  { fondo: "var(--color-tomate-tenue)", tinta: "var(--color-tomate)" },
+  { fondo: "var(--color-crema)", tinta: "var(--color-tinta-suave)" },
+  { fondo: "var(--color-linea)", tinta: "var(--color-humo)" },
 ];
 
 export function PlaceholderImagen({

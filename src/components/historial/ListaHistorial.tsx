@@ -66,7 +66,7 @@ export function ListaHistorial({ recetas }: { recetas: ResumenReceta[] }) {
           </p>
           <Link
             href="/"
-            className="mt-5 inline-flex rounded-lg bg-verde px-5 py-3 text-sm font-semibold text-papel transition-colors hover:bg-verde-oscuro"
+            className="mt-5 inline-flex rounded-lg bg-verde px-5 py-3 text-sm font-semibold text-sobre-acento transition-colors hover:bg-verde-oscuro"
           >
             Buscar qué cocinar
           </Link>

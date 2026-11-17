@@ -20,7 +20,7 @@ const OPCIONES_TIEMPO = [15, 30, 45] as const;
 
 const CHIP_BASE =
   "rounded-md border px-3 py-1.5 text-sm font-medium transition-colors";
-const CHIP_ACTIVO = "border-verde bg-verde text-papel";
+const CHIP_ACTIVO = "border-verde bg-verde text-sobre-acento";
 const CHIP_INACTIVO =
   "border-linea bg-papel text-tinta hover:border-verde hover:text-verde";
 
@@ -123,7 +123,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
                 <button
                   type="button"
                   onClick={() => quitar(seleccionados[i])}
-                  className="flex items-center gap-1.5 rounded-md bg-verde px-2.5 py-1 text-sm font-medium text-papel transition-colors hover:bg-verde-oscuro"
+                  className="flex items-center gap-1.5 rounded-md bg-verde px-2.5 py-1 text-sm font-medium text-sobre-acento transition-colors hover:bg-verde-oscuro"
                 >
                   {nombre}
                   <IconoCruz className="h-3.5 w-3.5 opacity-80" />
@@ -301,7 +301,7 @@ export function Buscador({ ingredientes }: { ingredientes: Ingrediente[] }) {
         <button
           type="button"
           onClick={() => irAHResultados(false)}
-          className="flex-1 rounded-lg bg-verde px-6 py-3.5 text-base font-semibold text-papel transition-colors hover:bg-verde-oscuro"
+          className="flex-1 rounded-lg bg-verde px-6 py-3.5 text-base font-semibold text-sobre-acento transition-colors hover:bg-verde-oscuro"
         >
           Buscar qué puedo cocinar
         </button>

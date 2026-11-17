@@ -3,7 +3,7 @@
 /*
   Sistema de diseño — "recetario de trabajo".
 
-  Papel blanco y tinta cálida, con dos acentos de significado fijo:
+  Papel blanco cálido y tinta marrón, con dos acentos de significado fijo:
   - verde albahaca: acciones primarias y estados "podés hacerlo ya";
   - tomate: tiempo y azar (cronómetros, Sorprendeme, ingredientes faltantes).
   Todo lo demás es gris cálido. Sin gradientes decorativos.
@@ -11,13 +11,25 @@
 @theme inline {
   --font-sans: var(--font-texto), Arial, Helvetica, sans-serif;
   --font-display: var(--font-titulos), Georgia, serif;
+}
 
-  --color-papel: #ffffff;
+/*
+  Colores como variables CSS para que el tema cambie sin tocar las clases.
+  Por defecto va la paleta clara; con data-tema="oscuro" en <html> se activa
+  la paleta oscura (el script de layout.tsx lo elige según la preferencia
+  guardada o el sistema operativo).
+
+  La oscura es "cocina de noche": marrón espresso en vez de negro puro, crema
+  en vez de blanco, y los acentos aclarados para que se lean sin deslumbrar.
+*/
+@theme static {
+  --color-papel: #fffdf9;
   --color-crema: #f7f5f0;
   --color-linea: #e5e2dc;
   --color-tinta: #21201c;
   --color-tinta-suave: #55524b;
   --color-humo: #75716a;
+  --color-sobre-acento: #ffffff;
 
   --color-verde: #1e5c45;
   --color-verde-oscuro: #154434;
@@ -28,10 +40,30 @@
   --color-tomate-tenue: #f9ede6;
 }
 
-/*
-  Tema claro fijo: la app se usa mientras se cocina (a menudo de día y con
-  las manos ocupadas); el auto-dark del scaffold traía inconsistencias visuales.
-*/
+:root {
+  color-scheme: light;
+}
+
+:root[data-tema="oscuro"] {
+  color-scheme: dark;
+
+  --color-papel: #1d1b18;
+  --color-crema: #272420;
+  --color-linea: #3a3530;
+  --color-tinta: #ebe5da;
+  --color-tinta-suave: #c0b8ab;
+  --color-humo: #9b9387;
+  --color-sobre-acento: #17201a;
+
+  --color-verde: #8dd0aa;
+  --color-verde-oscuro: #b3e4c8;
+  --color-verde-tenue: #203329;
+
+  --color-tomate: #ff9c79;
+  --color-tomate-oscuro: #ffc4ae;
+  --color-tomate-tenue: #3a251c;
+}
+
 body {
   background: var(--color-papel);
   color: var(--color-tinta);
