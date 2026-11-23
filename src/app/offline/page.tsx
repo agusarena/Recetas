@@ -15,8 +15,8 @@ export default function Page() {
         Te quedaste sin conexión
       </h1>
       <p className="mt-3 max-w-md text-tinta-suave">
-        Podés volver a la última receta que abriste desde el historial del navegador. Cuando
-        recuperes internet, todo vuelve a estar disponible.
+        El buscador y el catálogo necesitan conexión. Algunas recetas que abriste antes pueden
+        seguir disponibles si el navegador las guardó. Cuando recuperes internet, reintentá.
       </p>
       <Link
         href="/"

@@ -37,6 +37,8 @@ export const RESTRICCIONES: { valor: EtiquetaDieta; etiqueta: string }[] = [
   { valor: "sin_tacc", etiqueta: "Sin TACC" },
   { valor: "sin_lactosa", etiqueta: "Sin Lactosa" },
   { valor: "sin_frutos_secos", etiqueta: "Sin Frutos Secos" },
+  { valor: "sin_huevo", etiqueta: "Sin Huevo" },
+  { valor: "sin_pescado", etiqueta: "Sin Pescado" },
 ];
 
 /**
@@ -48,6 +50,8 @@ const ALERGENO_POR_RESTRICCION: Partial<Record<EtiquetaDieta, Alergeno>> = {
   sin_tacc: "gluten",
   sin_lactosa: "lactosa",
   sin_frutos_secos: "frutos_secos",
+  sin_huevo: "huevo",
+  sin_pescado: "pescado",
 };
 
 /** Orden de menor a mayor esfuerzo, para desempatar el ranking. */

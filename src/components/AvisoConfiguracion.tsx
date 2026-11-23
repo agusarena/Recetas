@@ -18,11 +18,11 @@ export function AvisoConfiguracion({ detalle }: { detalle?: string }) {
           <code className="rounded bg-papel px-1">NEXT_PUBLIC_SUPABASE_ANON_KEY</code>.
         </li>
         <li>
-          Ejecutá en el SQL Editor del dashboard, en orden:{" "}
-          <code className="rounded bg-papel px-1">supabase/migrations/0001_init.sql</code>,{" "}
-          <code className="rounded bg-papel px-1">0002_seguridad_e_indices.sql</code> y{" "}
-          <code className="rounded bg-papel px-1">supabase/seed.sql</code> (guía completa
-          en <code className="rounded bg-papel px-1">supabase/README.md</code>).
+          Ejecutá, en orden, las migraciones <code className="rounded bg-papel px-1">0001</code> a{" "}
+          <code className="rounded bg-papel px-1">0006</code> de{" "}
+          <code className="rounded bg-papel px-1">supabase/migrations/</code> y después{" "}
+          <code className="rounded bg-papel px-1">supabase/seed.sql</code> (guía completa en{" "}
+          <code className="rounded bg-papel px-1">supabase/README.md</code>).
         </li>
         <li>Reiniciá el servidor de desarrollo.</li>
       </ol>

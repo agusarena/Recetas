@@ -15,7 +15,8 @@ Correr los archivos en este orden (cada migración asume las anteriores):
 | 3 | `migrations/0003_reemplazos.sql` | Columna `reemplazo_ingrediente_id` + FK + índice |
 | 4 | `migrations/0004_categoria.sql` | Columna `recetas.categoria` (`salado`/`dulce`) |
 | 5 | `migrations/0005_principal.sql` | Columna `receta_ingredientes.es_principal` (protagonista del plato) |
-| 6 | `seed.sql` | Catálogo: 68 ingredientes + 100 recetas |
+| 6 | `migrations/0006_alergenos_huevo_pescado.sql` | Etiquetas y filtros Sin Huevo / Sin Pescado |
+| 7 | `seed.sql` | Catálogo: 68 ingredientes + 100 recetas |
 
 Desde el dashboard de Supabase: pegar cada archivo en el SQL Editor, en
 ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
@@ -24,11 +25,11 @@ ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
 `seed.sql` es **idempotente** y transaccional: se puede volver a correr
 sin duplicar filas ni dejar el catálogo a medias.
 
-> **Si ya tenías el catálogo cargado:** aplicá `0003`, `0004` y `0005` y
+> **Si ya tenías el catálogo cargado:** aplicá `0003`, `0004`, `0005` y `0006` y
 > volvé a correr `seed.sql`. Las migraciones agregan las columnas y el seed
-> completa los IDs de los reemplazos y los protagonistas (`es_principal`)
-> de las relaciones existentes. Correr el seed antes de `0003` falla porque la
-> columna todavía no existe.
+> completa los IDs de los reemplazos y los protagonistas (`es_principal`), y
+> recalcula las etiquetas Sin Huevo / Sin Pescado. El seed debe ejecutarse
+> después de `0006` porque usa `categoria`, `es_principal` y los reemplazos.
 
 ## Convenciones
 

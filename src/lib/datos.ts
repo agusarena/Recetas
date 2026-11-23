@@ -106,6 +106,8 @@ const ETIQUETAS_VALIDAS = new Set<EtiquetaDieta>([
   "sin_tacc",
   "sin_lactosa",
   "sin_frutos_secos",
+  "sin_huevo",
+  "sin_pescado",
 ]);
 
 /* eslint-disable @typescript-eslint/no-explicit-any */

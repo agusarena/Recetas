@@ -71,7 +71,7 @@ async function cachePrimero(request) {
     const respuesta = await fetch(request);
     if (respuesta.ok) {
       const cache = await caches.open(CACHE_ASSETS);
-      cache.put(request, respuesta.clone());
+      await cache.put(request, respuesta.clone());
     }
     return respuesta;
   } catch {

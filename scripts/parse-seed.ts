@@ -26,6 +26,8 @@ const ETIQUETAS = new Set<EtiquetaDieta>([
   "sin_tacc",
   "sin_lactosa",
   "sin_frutos_secos",
+  "sin_huevo",
+  "sin_pescado",
 ]);
 const UNIDADES = new Set<Unidad>(["g", "ml", "unidad", "cda", "taza", "pizca"]);
 
@@ -185,6 +187,23 @@ export function leerSemilla(ruta: string = RUTA_SEED): Semilla {
       throw new Error(
         `Reemplazo inexistente en ${relacion.receta_id}/${relacion.ingrediente_id}: ${relacion.reemplazo_ingrediente_id}`,
       );
+    }
+  }
+
+  // El seed deriva estas dos etiquetas de todos los ingredientes de la receta
+  // (también los opcionales), igual que la actualización SQL de abajo.
+  for (const receta of recetas) {
+    const alergenos = new Set(receta.ingredientes.flatMap((ri) => ri.ingrediente.alergenos));
+    for (const [etiqueta, alergeno] of [
+      ["sin_huevo", "huevo"],
+      ["sin_pescado", "pescado"],
+    ] as const) {
+      receta.etiquetas_dieta = receta.etiquetas_dieta.filter(
+        (existente) => existente !== etiqueta || !alergenos.has(alergeno),
+      );
+      if (!alergenos.has(alergeno) && !receta.etiquetas_dieta.includes(etiqueta)) {
+        receta.etiquetas_dieta.push(etiqueta);
+      }
     }
   }
 

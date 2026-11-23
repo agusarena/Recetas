@@ -9,14 +9,14 @@ Una aplicación web práctica, rápida y pensada para resolver la comida diaria 
 ## 🌟 Características Principales
 
 * 🧊 **Búsqueda por Heladera:** Elegí los ingredientes que tenés en casa (con autocompletado y alias cotidianos como *palta/aguacate*, *frutilla/fresa*, *carne picada/molida*).
-* 🛡️ **Seguridad Alimentaria Estricta:** Filtros confiables para dietas y alérgenos (*Vegetariano*, *Vegano*, *Sin TACC*, *Sin Lactosa*, *Sin Huevo*, *Sin Frutos Secos*, *Sin Pescado*). La exclusión se verifica tanto por etiquetas de la receta como por los ingredientes reales.
+* 🛡️ **Filtros de dietas y alérgenos:** (*Vegetariano*, *Vegano*, *Sin TACC*, *Sin Lactosa*, *Sin Huevo*, *Sin Frutos Secos*, *Sin Pescado*). La exclusión se verifica por las etiquetas de la receta y los alérgenos declarados en sus ingredientes; para alergias, revisá también envases y posibles trazas.
 * 🔄 **Matching con Reemplazos Inteligentes:** Si una receta pide queso rallado pero tenés queso cremoso (o atún en lugar de pollo), el motor lo detecta y te muestra la receta como lista para cocinar.
 * ⏱️ **Modo Cocina con Cronómetros Reales:** Timers por paso basados en hora absoluta (`Date.now()`), por lo que **no se atrasan ni se pausan** si la pantalla se bloquea o la pestaña queda de fondo. Incluye alertas sonoras con Web Audio API y Screen Wake Lock.
 * ⚖️ **Escalado Dinámico de Porciones:** Ajustá las porciones deseadas (1, 2, 4 o más) y las cantidades de ingredientes y macros orientativos se recalculan automáticamente.
 * 🛒 **Lista de Compras Integrada:** ¿Te falta un ingrediente? Podés copiar la lista organizada por góndola (verdulería, carnicería, lácteos) o enviártela a tu WhatsApp con un solo clic.
 * 🚫 **Sin Bloqueos ni Pantallas Vacías:** Si tu combinación de ingredientes no tiene coincidencia exacta, el motor sugiere alternativas cercanas (*"Si comprás X sumás N recetas"* o *"Quitar límite de tiempo"*).
 * 🔒 **100% Privado y Sin Login:** Tu heladera, recetas favoritas y preferencias se guardan de forma local en tu navegador mediante `localStorage`. Cero fricción, sin cuentas ni contraseñas.
-* 📱 **PWA Instalable (Progressive Web App):** Instalable en escritorio o celular con soporte offline mediante Service Worker.
+* 📱 **PWA instalable:** Se puede instalar en escritorio o celular. El modo offline es limitado: guarda recursos estáticos y puede servir recetas abiertas previamente mediante navegación completa; la búsqueda y el catálogo requieren conexión.
 
 ---
 
@@ -52,6 +52,7 @@ npm install
    3. `0003_reemplazos.sql` — Clave foránea para vincular reemplazos con ingredientes del catálogo.
    4. `0004_categoria.sql` — Clasificación por perfil de sabor (`salado` / `dulce`).
    5. `0005_principal.sql` — Ingrediente protagonista de cada receta (`es_principal`), que pesa más en el ranking.
+   6. `0006_alergenos_huevo_pescado.sql` — Amplía las etiquetas y normaliza los filtros Sin Huevo / Sin Pescado.
 3. Ejecutá `supabase/seed.sql` para cargar el catálogo inicial de recetas e ingredientes (68 ingredientes y 100 recetas).
 4. Creá tu archivo `.env.local` a partir de `.env.example`:
    ```bash
@@ -83,9 +84,9 @@ El proyecto cuenta con scripts de validación y diagnóstico:
 | `npm run build` | Compila y optimiza la aplicación para producción. |
 | `npm test` | Ejecuta la suite de pruebas unitarias con Vitest. |
 | `npm run test:watch` | Ejecuta los tests en modo observador interactivo. |
-| `npm run check` | Corre el pipeline completo: `lint` + `typecheck` + `test` (igual que en CI). |
+| `npm run check` | Corre `lint` + `typecheck` + `test` + `smoke`. CI además ejecuta el build de producción. |
 | `npm run cobertura` | Diagnostica el % de heladeras típicas que encuentran al menos 3 recetas. |
-| `npm run smoke` | Pruebas manuales de consistencia del motor y cálculo de porciones. |
+| `npm run smoke` | Pruebas de consistencia del motor y cálculo de porciones (también incluidas en `check` y CI). |
 
 ---
 

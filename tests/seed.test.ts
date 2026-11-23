@@ -68,6 +68,18 @@ describe("seed.sql", () => {
     }
   });
 
+  it("deriva Sin Huevo y Sin Pescado de los alérgenos de todos los ingredientes", () => {
+    for (const receta of semilla.recetas) {
+      const alergenos = new Set(receta.ingredientes.flatMap((ri) => ri.ingrediente.alergenos));
+      expect(receta.etiquetas_dieta.includes("sin_huevo"), receta.titulo).toBe(
+        !alergenos.has("huevo"),
+      );
+      expect(receta.etiquetas_dieta.includes("sin_pescado"), receta.titulo).toBe(
+        !alergenos.has("pescado"),
+      );
+    }
+  });
+
   it("todo ingrediente no básico es obligatorio en al menos una receta", () => {
     const obligatorios = new Set(
       semilla.relaciones.filter((r) => !r.es_opcional).map((r) => r.ingrediente_id),

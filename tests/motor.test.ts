@@ -151,6 +151,40 @@ describe("motor de búsqueda", () => {
     expect(resultados.some((r) => r.receta.id === "palta")).toBe(false);
   });
 
+  it("aplica Sin Huevo también a ingredientes opcionales aunque la etiqueta sea incorrecta", () => {
+    const sinHuevo = receta("sin-huevo", {
+      etiquetas: ["sin_huevo"],
+      ingredientes: [rel("sin-huevo", tomate)],
+    });
+    const etiquetaIncorrecta = receta("etiqueta-incorrecta", {
+      etiquetas: ["sin_huevo"],
+      ingredientes: [rel("etiqueta-incorrecta", huevo, { opcional: true })],
+    });
+
+    const resultados = buscarRecetas(
+      [sinHuevo, etiquetaIncorrecta],
+      filtros([], { restricciones: ["sin_huevo"] }),
+    );
+    expect(resultados.map((r) => r.receta.id)).toEqual(["sin-huevo"]);
+  });
+
+  it("aplica Sin Pescado comprobando los alérgenos de los ingredientes", () => {
+    const sinPescado = receta("sin-pescado", {
+      etiquetas: ["sin_pescado"],
+      ingredientes: [rel("sin-pescado", tomate)],
+    });
+    const etiquetaIncorrecta = receta("etiqueta-incorrecta", {
+      etiquetas: ["sin_pescado"],
+      ingredientes: [rel("etiqueta-incorrecta", atun)],
+    });
+
+    const resultados = buscarRecetas(
+      [sinPescado, etiquetaIncorrecta],
+      filtros([], { restricciones: ["sin_pescado"] }),
+    );
+    expect(resultados.map((r) => r.receta.id)).toEqual(["sin-pescado"]);
+  });
+
   it("excluye recetas que no declaran la restricción pedida", () => {
     const resultados = buscarRecetas(CATALOGO, filtros([], { restricciones: ["vegetariano"] }));
     expect(resultados.some((r) => r.receta.id === "guiso")).toBe(false);

@@ -153,8 +153,8 @@ verificar(
   omelette?.faltantes[0]?.reemplazo_sugerido === "queso cremoso",
 );
 
-// 4. Ranking nivel 1 ordenado por tiempo y desempatado por dificultad:
-//    con pantry completo de tortilla, tortilla (30) va después que omelette (10).
+// 4. En el mismo nivel, primero la receta que aprovecha más ingredientes
+//    de la heladera; el tiempo solo desempata cuando la relevancia es igual.
 const pantryCompleto = buscarRecetas(CATALOGO, {
   ingredientes: ["papa", "huevo", "cebolla", "queso", "sal"],
   restricciones: [],
@@ -162,8 +162,8 @@ const pantryCompleto = buscarRecetas(CATALOGO, {
 });
 const ids = pantryCompleto.map((r) => r.receta.id);
 verificar(
-  "ranking: omelette (10') antes que tortilla (30')",
-  ids.indexOf("omelette") < ids.indexOf("tortilla"),
+  "ranking: tortilla aprovecha más ingredientes que omelette",
+  ids.indexOf("tortilla") < ids.indexOf("omelette"),
 );
 
 // 5. Nivel 3 solo si niveles 1+2 < 3: pantry vacío solo deja recetas con ≤2 obligatorios.

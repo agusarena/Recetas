@@ -26,7 +26,9 @@ export type EtiquetaDieta =
   | "vegano"
   | "sin_tacc"
   | "sin_lactosa"
-  | "sin_frutos_secos";
+  | "sin_frutos_secos"
+  | "sin_huevo"
+  | "sin_pescado";
 
 /** Alergenos codificados en `ingredientes.alergenos`. */
 export type Alergeno = "gluten" | "lactosa" | "frutos_secos" | "huevo" | "pescado";

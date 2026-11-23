@@ -6,12 +6,12 @@ describe("validación de filtros", () => {
     const filtros = validarFiltros(
       new URLSearchParams({
         ingredientes: " huevo, papa ,, ",
-        restricciones: "sin_tacc,mentira,vegano",
+        restricciones: "sin_tacc,sin_huevo,sin_pescado,mentira,vegano",
         tiempo: "30",
       }),
     );
     expect(filtros.ingredientes).toEqual(["huevo", "papa"]);
-    expect(filtros.restricciones).toEqual(["sin_tacc", "vegano"]);
+    expect(filtros.restricciones).toEqual(["sin_tacc", "sin_huevo", "sin_pescado", "vegano"]);
     expect(filtros.tiempo_maximo).toBe(30);
   });
 

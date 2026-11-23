@@ -10,7 +10,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
-    "check": "npm run lint && npm run typecheck && npm test",
+    "check": "npm run lint && npm run typecheck && npm test && npm run smoke",
     "cobertura": "tsx scripts/cobertura.ts",
     "smoke": "tsx scripts/smoke-motor.ts && tsx scripts/smoke-porciones.ts",
     "iconos": "powershell -ExecutionPolicy Bypass -File scripts/generar-iconos.ps1"

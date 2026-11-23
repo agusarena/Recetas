@@ -1,7 +1,6 @@
 -- =============================================================
 -- seed.sql — Catálogo ampliado: 68 ingredientes + 100 recetas.
--- Ejecutar DESPUÉS de 0001_init.sql, 0002_seguridad_e_indices.sql y
--- 0003_reemplazos.sql
+-- Ejecutar DESPUÉS de todas las migraciones 0001 a 0006.
 -- (SQL Editor del dashboard de Supabase o supabase db reset).
 --
 -- Todo el archivo corre en UNA transacción: si algo falla, no queda
@@ -2165,5 +2164,52 @@ from (values
 where ri.receta_id = v.receta_id::uuid
   and ri.ingrediente_id = v.ingrediente_id::uuid
   and ri.reemplazo_ingrediente_id is distinct from v.reemplazo_id::uuid;
+
+-- Etiquetas de alergia derivadas del catálogo completo de ingredientes.
+-- Los ingredientes opcionales también excluyen la receta para estos filtros.
+-- La contaminación cruzada se advierte por separado en la interfaz.
+update public.recetas r
+set etiquetas_dieta = array_remove(r.etiquetas_dieta, 'sin_huevo')
+where 'sin_huevo' = any(r.etiquetas_dieta)
+  and exists (
+    select 1
+    from public.receta_ingredientes ri
+    join public.ingredientes i on i.id = ri.ingrediente_id
+    where ri.receta_id = r.id
+      and i.alergenos @> array['huevo']::text[]
+  );
+
+update public.recetas r
+set etiquetas_dieta = array_append(r.etiquetas_dieta, 'sin_huevo')
+where not ('sin_huevo' = any(r.etiquetas_dieta))
+  and not exists (
+    select 1
+    from public.receta_ingredientes ri
+    join public.ingredientes i on i.id = ri.ingrediente_id
+    where ri.receta_id = r.id
+      and i.alergenos @> array['huevo']::text[]
+  );
+
+update public.recetas r
+set etiquetas_dieta = array_remove(r.etiquetas_dieta, 'sin_pescado')
+where 'sin_pescado' = any(r.etiquetas_dieta)
+  and exists (
+    select 1
+    from public.receta_ingredientes ri
+    join public.ingredientes i on i.id = ri.ingrediente_id
+    where ri.receta_id = r.id
+      and i.alergenos @> array['pescado']::text[]
+  );
+
+update public.recetas r
+set etiquetas_dieta = array_append(r.etiquetas_dieta, 'sin_pescado')
+where not ('sin_pescado' = any(r.etiquetas_dieta))
+  and not exists (
+    select 1
+    from public.receta_ingredientes ri
+    join public.ingredientes i on i.id = ri.ingrediente_id
+    where ri.receta_id = r.id
+      and i.alergenos @> array['pescado']::text[]
+  );
 
 commit;
