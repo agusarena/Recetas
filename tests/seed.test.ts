@@ -7,8 +7,8 @@ describe("seed.sql", () => {
   const idsRecetas = new Set(semilla.recetas.map((r) => r.id));
 
   it("parsea el catálogo completo", () => {
-    expect(semilla.ingredientes).toHaveLength(68);
-    expect(semilla.recetas).toHaveLength(100);
+    expect(semilla.ingredientes).toHaveLength(92);
+    expect(semilla.recetas).toHaveLength(113);
     expect(semilla.relaciones.length).toBeGreaterThanOrEqual(360);
   });
 

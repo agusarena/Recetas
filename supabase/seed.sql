@@ -1,5 +1,5 @@
 -- =============================================================
--- seed.sql — Catálogo ampliado: 68 ingredientes + 100 recetas.
+-- seed.sql — Catálogo ampliado: 92 ingredientes + 113 recetas.
 -- Ejecutar DESPUÉS de todas las migraciones 0001 a 0006.
 -- (SQL Editor del dashboard de Supabase o supabase db reset).
 --
@@ -87,7 +87,32 @@ insert into ingredientes (id, nombre, categoria, es_basico, alergenos) values
   ('00000000-0000-4000-8000-000000000065', 'Crema de leche',              'lácteos',   false, '{lactosa}'),
   ('00000000-0000-4000-8000-000000000066', 'Galletitas de agua',          'almacén',   false, '{gluten}'),
   ('00000000-0000-4000-8000-000000000067', 'Cacao amargo',                'almacén',   false, '{}'),
-  ('00000000-0000-4000-8000-000000000068', 'Albahaca',                    'verduras',  false, '{}')
+  ('00000000-0000-4000-8000-000000000068', 'Albahaca',                    'verduras',  false, '{}'),
+  -- Nuevos en Fase 4 (00000000-0000-4000-8000-000000000069 a 092): cotidianos de heladera y alacena.
+  ('00000000-0000-4000-8000-000000000069', 'Salchichas',                  'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000070', 'Patitas de pollo',            'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000071', 'Alitas de pollo',             'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000072', 'Milanesas de pollo',          'carnes',    false, '{gluten,huevo}'),
+  ('00000000-0000-4000-8000-000000000073', 'Chorizo',                     'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000074', 'Bondiola de cerdo',           'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000075', 'Panceta',                     'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000076', 'Hamburguesas de carne',       'carnes',    false, '{}'),
+  ('00000000-0000-4000-8000-000000000077', 'Sardinas en lata',            'almacén',   false, '{pescado}'),
+  ('00000000-0000-4000-8000-000000000078', 'Tomate triturado en lata',    'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000079', 'Porotos en lata',             'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000080', 'Mayonesa',                    'almacén',   false, '{huevo}'),
+  ('00000000-0000-4000-8000-000000000081', 'Ketchup',                     'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000082', 'Mostaza',                     'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000083', 'Papas congeladas',            'almacén',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000084', 'Queso en fetas',              'lácteos',   false, '{lactosa}'),
+  ('00000000-0000-4000-8000-000000000085', 'Ricota',                      'lácteos',   false, '{lactosa}'),
+  ('00000000-0000-4000-8000-000000000086', 'Pan lactal',                  'panadería', false, '{gluten}'),
+  ('00000000-0000-4000-8000-000000000087', 'Repollo',                     'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000088', 'Coliflor',                    'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000089', 'Puerro',                      'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000090', 'Perejil',                     'verduras',  false, '{}'),
+  ('00000000-0000-4000-8000-000000000091', 'Naranja',                     'frescos',   false, '{}'),
+  ('00000000-0000-4000-8000-000000000092', 'Azúcar',                      'almacén',   false, '{}')
 on conflict (id) do nothing;
 
 -- ─────────────────────────────────────────────────────────────
@@ -1512,6 +1537,201 @@ insert into recetas (id, titulo, categoria, descripcion_corta, tiempo_minutos, d
    'Cortar la pera en el momento evita que se oxide. El limón la mantiene brillante.',
    '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
    '{"calorias":90,"perfil":"liviano","proteinas":1,"carbohidratos":20,"grasas":0}'::jsonb,
+   null),
+
+  -- Fase 4 (201 a 213): recetas con los ingredientes cotidianos nuevos.
+  ('00000000-0000-4000-8000-000000000201',
+   'Salchichas al horno con papas y cebolla',
+   'salado',
+   'Una sola bandeja: salchichas doradas con papas y cebolla, sin ensuciar de más.',
+   35, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 200 °C. Pelá las papas, cortalas en gajos y cortá la cebolla en plumas.","tiempo_segundos":null},
+     {"orden":2,"texto":"En una fuente para horno poné las papas y la cebolla, rociá con 2 cucharadas de aceite y sal, y mezclá con las manos.","tiempo_segundos":null},
+     {"orden":3,"texto":"Llevá al horno 15 minutos para que empiecen a dorarse.","tiempo_segundos":900},
+     {"orden":4,"texto":"Hacé 2 cortes diagonales en cada salchicha, sumalas a la fuente y horneá 15 minutos más, dándolas vuelta a mitad de cocción.","tiempo_segundos":900},
+     {"orden":5,"texto":"Serví caliente. Si te gusta, acompañá con mostaza.","tiempo_segundos":null}]',
+   'Los cortes en la salchicha evitan que se revienten con el calor y dejan que se dore parejo.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":520,"perfil":"alto en grasas","proteinas":22,"carbohidratos":40,"grasas":28}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000202',
+   'Patitas de pollo al horno con ajo y pimentón',
+   'salado',
+   'Económicas, jugosas y bien sabrosas. Se comen con los dedos y rinden mucho.',
+   50, 'facil', 2,
+   '[{"orden":1,"texto":"Lavá las patitas y secalas bien con papel de cocina. Si tienen la uña dura, cortala con tijera.","tiempo_segundos":null},
+     {"orden":2,"texto":"En un bowl mezclá los 3 dientes de ajo picados, la cucharada de pimentón dulce, 2 cucharadas de aceite, el jugo de medio limón, orégano y sal.","tiempo_segundos":null},
+     {"orden":3,"texto":"Mezclá las patitas con la marinada usando las manos y dejalas reposar 15 minutos.","tiempo_segundos":900},
+     {"orden":4,"texto":"Precalentá el horno a 200 °C y acomodá las patitas en una fuente, sin amontonarlas.","tiempo_segundos":null},
+     {"orden":5,"texto":"Horneá 35 minutos dándolas vuelta a mitad de cocción, hasta que estén doradas y la piel se vea crocante.","tiempo_segundos":2100}]',
+   'Si las dejás en la marinada toda la noche en la heladera, quedan mucho más sabrosas.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":380,"perfil":"alto en proteinas","proteinas":30,"carbohidratos":2,"grasas":26}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000203',
+   'Alitas al horno con miel y mostaza',
+   'salado',
+   'Crocantes por fuera y acarameladas por dentro. Un clásico que sale casi solo.',
+   45, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 220 °C. Secá bien las alitas con papel de cocina: la piel seca es clave para que queden crocantes.","tiempo_segundos":null},
+     {"orden":2,"texto":"Salpimentá las alitas y acomodalas en una placa con papel manteca, sin que se toquen.","tiempo_segundos":null},
+     {"orden":3,"texto":"Horneá 25 minutos, dándolas vuelta a mitad de cocción.","tiempo_segundos":1500},
+     {"orden":4,"texto":"Mientras tanto, mezclá 2 cucharadas de miel, 1 de mostaza y el ajo picado si lo usás.","tiempo_segundos":null},
+     {"orden":5,"texto":"Pintá las alitas con esa mezcla, volvé al horno 10 minutos más y serví calientes.","tiempo_segundos":600}]',
+   'Pintalas con la salsa recién en los últimos 10 minutos: si lo hacés antes, la miel se quema y amarga.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":430,"perfil":"alto en proteinas","proteinas":32,"carbohidratos":14,"grasas":26}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000204',
+   'Hamburguesas caseras con papas congeladas',
+   'salado',
+   'Hamburguesa de cena con papas al horno en 25 minutos. Armala con tus toppings.',
+   25, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 220 °C. Poné las papas congeladas en una placa con papel manteca, rociá con aceite y sal.","tiempo_segundos":null},
+     {"orden":2,"texto":"Horneá las papas 20 minutos, dándolas vuelta a mitad de cocción, hasta que estén doradas.","tiempo_segundos":1200},
+     {"orden":3,"texto":"Mientras tanto, calentá una sartén a fuego fuerte sin aceite y cociná las hamburguesas 3 minutos de cada lado.","tiempo_segundos":360},
+     {"orden":4,"texto":"Poné una feta de queso sobre cada hamburguesa y tapá 30 segundos para que se derrita.","tiempo_segundos":30},
+     {"orden":5,"texto":"Tostá los panes por dentro y armá: pan, hamburguesa con queso, ketchup y mostaza. Serví con las papas.","tiempo_segundos":null}]',
+   'No aplastes la hamburguesa con la espátula mientras se cocina: así no se pierden los jugos.',
+   '{sin_frutos_secos}',
+   '{"calorias":690,"perfil":"alto en proteinas","proteinas":36,"carbohidratos":58,"grasas":34}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000205',
+   'Milanesas de pollo al horno con puré',
+   'salado',
+   'Milanesas crocantes sin freidora y un puré casero que sale en un rato.',
+   35, 'facil', 2,
+   '[{"orden":1,"texto":"Pelá las papas, cortalas en cubos parejos y ponelas en una olla con agua fría y sal. Llevá a hervir y cocinalas hasta que una punta de cuchillo entre sin resistencia.","tiempo_segundos":900},
+     {"orden":2,"texto":"Mientras tanto, precalentá el horno a 220 °C y acomodá las milanesas en una placa con papel manteca, sin amontonarlas.","tiempo_segundos":null},
+     {"orden":3,"texto":"Rociá las milanesas con un chorrito de aceite y horneá 12 minutos. Dalas vuelta y seguí 8 minutos más, hasta que estén doradas.","tiempo_segundos":1200},
+     {"orden":4,"texto":"Escurrí las papas, volvelas a la olla y aplastalas. Sumá la manteca y la leche tibia de a poco, mezclando hasta que quede cremoso.","tiempo_segundos":null},
+     {"orden":5,"texto":"Salá el puré a gusto y serví las milanesas con el puré al lado.","tiempo_segundos":null}]',
+   'Para un puré sedoso, sumá la leche tibia de a poco y no lo batas con batidora: queda pegajoso.',
+   '{sin_frutos_secos}',
+   '{"calorias":560,"perfil":"balanceado","proteinas":38,"carbohidratos":55,"grasas":18}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000206',
+   'Guiso de porotos con chorizo',
+   'salado',
+   'Guiso de olla con lo que hay en la alacena: porotos, chorizo y tomate.',
+   30, 'facil', 2,
+   '[{"orden":1,"texto":"Picá la cebolla y el ajo. Cortá el chorizo en rodajas gruesas.","tiempo_segundos":null},
+     {"orden":2,"texto":"En una olla calentá el aceite a fuego medio y dorá el chorizo hasta que suelte un poco de grasa.","tiempo_segundos":240},
+     {"orden":3,"texto":"Agregá la cebolla y el ajo, y cociná hasta que la cebolla esté transparente.","tiempo_segundos":300},
+     {"orden":4,"texto":"Sumá el tomate triturado, el pimentón y un poco de sal. Cociná a fuego medio para que se concentre.","tiempo_segundos":300},
+     {"orden":5,"texto":"Escurrí los porotos, incorporalos y dejá cocinar 10 minutos a fuego bajo para que se impregnen de la salsa. Serví caliente.","tiempo_segundos":600}]',
+   'Escurrí y enjuagá los porotos de la lata: así le quitás buena parte del sodio del líquido de conserva.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":460,"perfil":"alto en fibra","proteinas":22,"carbohidratos":46,"grasas":20}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000207',
+   'Fideos con panceta, huevo y queso',
+   'salado',
+   'Cremosa como una carbonara, sin crema de leche y lista en 20 minutos.',
+   20, 'facil', 2,
+   '[{"orden":1,"texto":"Llevá a hervir una olla grande de agua con sal y cociná los fideos según el paquete.","tiempo_segundos":540},
+     {"orden":2,"texto":"Mientras tanto, cortá la panceta en tiritas y dorala en una sartén sin aceite a fuego medio hasta que quede crocante.","tiempo_segundos":300},
+     {"orden":3,"texto":"En un bowl batí los 2 huevos con el queso rallado y pimienta.","tiempo_segundos":null},
+     {"orden":4,"texto":"Colá los fideos guardando una taza del agua de cocción. Volcalos a la sartén con la panceta, apagá el fuego y sumá un chorrito del agua caliente.","tiempo_segundos":null},
+     {"orden":5,"texto":"Agregá la mezcla de huevo y queso revolviendo rápido, con un chorrito más de agua si queda espeso. Serví enseguida.","tiempo_segundos":null}]',
+   'Apagá el fuego antes de sumar el huevo: así queda una salsa cremosa y no un revuelto.',
+   '{sin_frutos_secos}',
+   '{"calorias":620,"perfil":"carbohidratos","proteinas":24,"carbohidratos":66,"grasas":28}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000208',
+   'Ensalada de repollo y zanahoria con mayonesa',
+   'salado',
+   'Crocante y fresca, para acompañar cualquier carne o milanesa.',
+   10, 'cero_cocina', 2,
+   '[{"orden":1,"texto":"Sacá las hojas externas del repollo, lavá un cuarto y cortalo en tiras muy finas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Rallá o cortá en juliana la zanahoria.","tiempo_segundos":null},
+     {"orden":3,"texto":"Poné el repollo y la zanahoria en un bowl con una pizca de sal y dejalos reposar: van a soltar un poco de agua y quedar más crocantes.","tiempo_segundos":300},
+     {"orden":4,"texto":"Escurrí el líquido que soltaron y mezclá con 3 cucharadas de mayonesa y el limón si lo usás.","tiempo_segundos":null},
+     {"orden":5,"texto":"Probá, ajustá la sal y servila fresca.","tiempo_segundos":null}]',
+   'Salar y dejar reposar el repollo le quita el exceso de agua: así la mayonesa no queda aguada.',
+   '{vegetariano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":170,"perfil":"liviano","proteinas":2,"carbohidratos":10,"grasas":14}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000209',
+   'Crema de coliflor y puerro',
+   'salado',
+   'Una crema suave y reconfortante para días fríos, con verduras de cualquier verdulería.',
+   35, 'facil', 4,
+   '[{"orden":1,"texto":"Separá la coliflor en ramitos. Pelá la papa y cortala en cubos. Cortá los puerros en rodajas y lavalos bien entre las capas.","tiempo_segundos":null},
+     {"orden":2,"texto":"En una olla calentá el aceite a fuego medio y rehogá el puerro hasta que esté tierno, sin que se dore.","tiempo_segundos":300},
+     {"orden":3,"texto":"Sumá la papa, la coliflor, 1 litro de agua y el cubito de caldo. Llevá a hervir y cociná hasta que todo esté muy tierno.","tiempo_segundos":900},
+     {"orden":4,"texto":"Triturá con mixer hasta que quede una crema lisa. Si queda muy espesa, agregá un chorrito de agua caliente.","tiempo_segundos":null},
+     {"orden":5,"texto":"Probá, ajustá sal y pimienta, y serví con perejil picado por encima.","tiempo_segundos":null}]',
+   'Rehogar el puerro despacito antes de sumar el agua le da mucho más sabor que hervirlo directo.',
+   '{vegetariano,vegano,sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":150,"perfil":"liviano","proteinas":5,"carbohidratos":22,"grasas":5}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000210',
+   'Tostado de jamón y queso',
+   'salado',
+   'El sándwich de siempre, caliente y crocante en 5 minutos.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Poné 2 rebanadas de pan lactal sobre una tabla.","tiempo_segundos":null},
+     {"orden":2,"texto":"Cubrí una rebanada con 2 fetas de jamón cocido y 2 de queso en fetas. Tapá con la otra rebanada.","tiempo_segundos":null},
+     {"orden":3,"texto":"Calentá una sartén antiadherente a fuego medio, sin aceite, y tostá el sándwich 2 minutos de cada lado, apretando con la espátula.","tiempo_segundos":240},
+     {"orden":4,"texto":"Dejalo reposar 30 segundos antes de cortarlo para que el queso no se escape.","tiempo_segundos":30}]',
+   'Apretarlo suave mientras se tuesta hace que el queso se derrita parejo por todo el sándwich.',
+   '{sin_frutos_secos}',
+   '{"calorias":390,"perfil":"balanceado","proteinas":20,"carbohidratos":34,"grasas":18}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000211',
+   'Ricota dulce con naranja',
+   'dulce',
+   'Postre o merienda liviana: ricota cremosa con azúcar y naranja, lista en 5 minutos.',
+   5, 'cero_cocina', 1,
+   '[{"orden":1,"texto":"Poné la ricota en un bowl y aplastala con un tenedor hasta que quede cremosa.","tiempo_segundos":null},
+     {"orden":2,"texto":"Sumá el azúcar y mezclá hasta que se integre.","tiempo_segundos":null},
+     {"orden":3,"texto":"Rallá la cáscara de media naranja, sin la parte blanca, y agregala junto con una cucharada de su jugo.","tiempo_segundos":null},
+     {"orden":4,"texto":"Serví fría o a temperatura ambiente. Si te gusta, acompañá con galletitas de agua.","tiempo_segundos":null}]',
+   'Usá ricota fresca y no muy seca: se integra mejor con el azúcar y queda más suave.',
+   '{vegetariano,sin_tacc,sin_frutos_secos}',
+   '{"calorias":260,"perfil":"dulce liviano","proteinas":14,"carbohidratos":24,"grasas":11}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000212',
+   'Tostadas de sardinas con cebolla y limón',
+   'salado',
+   'Cena rápida con sardinas de lata: sin cocción y con mucho sabor.',
+   10, 'cero_cocina', 2,
+   '[{"orden":1,"texto":"Cortá la cebolla en plumas finas y dejala 5 minutos en agua fría para que pierda el picante.","tiempo_segundos":300},
+     {"orden":2,"texto":"Tostá las rebanadas de pan lactal hasta que estén crocantes.","tiempo_segundos":120},
+     {"orden":3,"texto":"Escurrí bien las sardinas y desmenuzalas sobre el pan.","tiempo_segundos":null},
+     {"orden":4,"texto":"Sumá la cebolla escurrida, el jugo de medio limón, un chorrito de aceite y pimienta.","tiempo_segundos":null},
+     {"orden":5,"texto":"Terminá con perejil picado si lo tenés y serví de inmediato.","tiempo_segundos":null}]',
+   'Escurrí bien la lata antes de desmenuzar: el exceso de aceite empapa el pan y lo vuelve pesado.',
+   '{sin_lactosa,sin_frutos_secos}',
+   '{"calorias":340,"perfil":"rico en omega 3","proteinas":22,"carbohidratos":30,"grasas":14}'::jsonb,
+   null),
+
+  ('00000000-0000-4000-8000-000000000213',
+   'Bondiola al horno con papas y cebolla',
+   'salado',
+   'Bondiola jugosa y dorada con papas, todo en una bandeja. Ideal para el domingo sin complicarte.',
+   60, 'facil', 2,
+   '[{"orden":1,"texto":"Precalentá el horno a 180 °C. Pelá las papas y cortalas en gajos; la cebolla en plumas gruesas.","tiempo_segundos":null},
+     {"orden":2,"texto":"Mezclá el ajo picado con el pimentón, el orégano, 1 cucharada de aceite y sal. Untá la bondiola por todos lados.","tiempo_segundos":null},
+     {"orden":3,"texto":"Poné la bondiola en una fuente con las papas y la cebolla alrededor, y cubrí con papel de aluminio.","tiempo_segundos":null},
+     {"orden":4,"texto":"Horneá 40 minutos con el aluminio puesto.","tiempo_segundos":2400},
+     {"orden":5,"texto":"Destapá, dala vuelta y horneá 20 minutos más, hasta que esté tierna y dorada.","tiempo_segundos":1200},
+     {"orden":6,"texto":"Dejá reposar la carne 5 minutos antes de cortarla en fetas para que no pierda el jugo.","tiempo_segundos":300}]',
+   'Dejarla reposar antes de cortar es clave: así el jugo queda en la carne y no en la tabla.',
+   '{sin_tacc,sin_lactosa,sin_frutos_secos}',
+   '{"calorias":610,"perfil":"alto en proteinas","proteinas":42,"carbohidratos":40,"grasas":32}'::jsonb,
    null)
 on conflict (id) do nothing;
 
@@ -2050,7 +2270,99 @@ insert into receta_ingredientes (receta_id, ingrediente_id, cantidad_base, unida
 
   ('00000000-0000-4000-8000-000000000200', '00000000-0000-4000-8000-000000000048', 1, 'unidad', '1 pera', false, true, null),
   ('00000000-0000-4000-8000-000000000200', '00000000-0000-4000-8000-000000000050', 2, 'unidad', '2 tallos de apio', false, true, null),
-  ('00000000-0000-4000-8000-000000000200', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón (opcional)', true, false, null)
+  ('00000000-0000-4000-8000-000000000200', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón (opcional)', true, false, null),
+
+  -- Fase 4 (201 a 213)
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000069', 4, 'unidad', '4 salchichas', false, true, null),
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000006', 500, 'g', '500 g de papas (unas 3 medianas)', false, false, null),
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, false, null),
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000082', 1, 'cda', '1 cda de mostaza (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000003', 2, 'cda', '2 cdas de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000201', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000070', 500, 'g', '500 g de patitas de pollo', false, true, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000019', 3, 'unidad', '3 dientes de ajo', false, false, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000033', 1, 'cda', '1 cda de pimentón dulce', false, false, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón', false, false, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000003', 2, 'cda', '2 cdas de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000032', 1, 'pizca', 'una pizca de orégano', false, false, null),
+  ('00000000-0000-4000-8000-000000000202', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000071', 800, 'g', '800 g de alitas de pollo', false, true, 'muslos de pollo (cortalos en 2 o 3 trozos)'),
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000038', 2, 'cda', '2 cdas de miel', false, false, null),
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000082', 1, 'cda', '1 cda de mostaza', false, false, null),
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000076', 2, 'unidad', '2 hamburguesas de carne', false, true, 'carne picada (armá vos las hamburguesas)'),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000020', 2, 'unidad', '2 panes para hamburguesa', false, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000083', 300, 'g', '300 g de papas congeladas', false, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000084', 2, 'unidad', '2 fetas de queso', false, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000081', 2, 'cda', '2 cdas de ketchup', false, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000082', 1, 'cda', '1 cda de mostaza (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000072', 2, 'unidad', '2 milanesas de pollo', false, true, null),
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000006', 800, 'g', '800 g de papas (unas 4 medianas)', false, false, null),
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000013', 1, 'cda', '1 cda de manteca', false, false, null),
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000014', 100, 'ml', '1/2 taza de leche tibia', false, false, null),
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000205', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000079', 1, 'unidad', '1 lata de porotos (400 g)', false, true, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000073', 2, 'unidad', '2 chorizos', false, true, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000078', 1, 'unidad', '1 lata de tomate triturado', false, false, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, false, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000019', 1, 'unidad', '1 diente de ajo', false, false, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000033', 1, 'cda', '1 cda de pimentón dulce (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000206', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000075', 100, 'g', '100 g de panceta en tiritas', false, true, null),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000009', 200, 'g', '200 g de fideos', false, false, null),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000005', 2, 'unidad', '2 huevos', false, false, null),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000012', 40, 'g', '40 g de queso rallado', false, false, null),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal para el agua de cocción', false, false, null),
+  ('00000000-0000-4000-8000-000000000207', '00000000-0000-4000-8000-000000000004', 1, 'pizca', 'pimienta a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000087', 300, 'g', '300 g de repollo (un cuarto)', false, true, null),
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000015', 1, 'unidad', '1 zanahoria', false, false, null),
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000080', 3, 'cda', '3 cdas de mayonesa', false, false, null),
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000208', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000088', 500, 'g', '500 g de coliflor (media chica)', false, true, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000089', 2, 'unidad', '2 puerros (parte blanca y verde claro)', false, false, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000006', 200, 'g', '200 g de papa', false, false, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000051', 1, 'unidad', '1 cubito de caldo', false, false, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000090', 1, 'unidad', '1 ramita de perejil para decorar', false, false, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000209', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000210', '00000000-0000-4000-8000-000000000086', 2, 'unidad', '2 rebanadas de pan lactal', false, false, null),
+  ('00000000-0000-4000-8000-000000000210', '00000000-0000-4000-8000-000000000084', 2, 'unidad', '2 fetas de queso', false, true, null),
+  ('00000000-0000-4000-8000-000000000210', '00000000-0000-4000-8000-000000000040', 2, 'unidad', '2 fetas de jamón cocido', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000085', 200, 'g', '200 g de ricota fresca', false, true, null),
+  ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000092', 2, 'cda', '2 cdas de azúcar', false, false, null),
+  ('00000000-0000-4000-8000-000000000211', '00000000-0000-4000-8000-000000000091', 0.5, 'unidad', 'media naranja (cáscara y jugo)', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000077', 1, 'unidad', '1 lata de sardinas', false, true, null),
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000086', 4, 'unidad', '4 rebanadas de pan lactal', false, false, null),
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000007', 0.5, 'unidad', 'media cebolla', false, false, null),
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000024', 0.5, 'unidad', 'medio limón', false, false, null),
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000090', 1, 'unidad', '1 ramita de perejil (opcional)', true, false, null),
+  ('00000000-0000-4000-8000-000000000212', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000074', 400, 'g', '400 g de bondiola', false, true, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000006', 500, 'g', '500 g de papas', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000007', 1, 'unidad', '1 cebolla', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000019', 2, 'unidad', '2 dientes de ajo', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000033', 1, 'cda', '1 cda de pimentón dulce', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000032', 1, 'pizca', 'una pizca de orégano', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000003', 1, 'cda', '1 cda de aceite', false, false, null),
+  ('00000000-0000-4000-8000-000000000213', '00000000-0000-4000-8000-000000000001', 1, 'pizca', 'sal a gusto', false, false, null)
 on conflict (receta_id, ingrediente_id) do update set es_principal = excluded.es_principal;
 
 -- ─────────────────────────────────────────────────────────────
@@ -2159,7 +2471,10 @@ from (values
   ('00000000-0000-4000-8000-000000000184', '00000000-0000-4000-8000-000000000011', '00000000-0000-4000-8000-000000000042'),
   ('00000000-0000-4000-8000-000000000185', '00000000-0000-4000-8000-000000000064', '00000000-0000-4000-8000-000000000011'),
   ('00000000-0000-4000-8000-000000000190', '00000000-0000-4000-8000-000000000014', '00000000-0000-4000-8000-000000000002'),
-  ('00000000-0000-4000-8000-000000000191', '00000000-0000-4000-8000-000000000054', '00000000-0000-4000-8000-000000000038')
+  ('00000000-0000-4000-8000-000000000191', '00000000-0000-4000-8000-000000000054', '00000000-0000-4000-8000-000000000038'),
+  -- Fase 4: alitas → muslos; hamburguesa → carne picada
+  ('00000000-0000-4000-8000-000000000203', '00000000-0000-4000-8000-000000000071', '00000000-0000-4000-8000-000000000042'),
+  ('00000000-0000-4000-8000-000000000204', '00000000-0000-4000-8000-000000000076', '00000000-0000-4000-8000-000000000025')
 ) as v(receta_id, ingrediente_id, reemplazo_id)
 where ri.receta_id = v.receta_id::uuid
   and ri.ingrediente_id = v.ingrediente_id::uuid
@@ -2211,5 +2526,19 @@ where not ('sin_pescado' = any(r.etiquetas_dieta))
     where ri.receta_id = r.id
       and i.alergenos @> array['pescado']::text[]
   );
+
+-- Fotos ilustrativas de Wikimedia Commons (scripts/fotos-recetas.ts), servidas desde public/recetas/.
+-- Las recetas sin foto revisada conservan imagen_url null y muestran el placeholder de letra.
+update public.recetas r
+set imagen_url = '/recetas/receta-' || right(r.id::text, 3) || '.webp'
+where right(r.id::text, 3) in (
+    '101', '102', '104', '105', '106', '109', '110', '111', '112', '113', '115', '116', '117', '120',
+    '123', '124', '126', '127', '130', '131', '132', '133', '134', '135', '136', '137', '138', '139',
+    '140', '143', '144', '145', '146', '147', '149', '150', '152', '153', '154', '155', '156', '158',
+    '159', '161', '162', '163', '165', '166', '167', '168', '170', '171', '172', '173', '174', '175',
+    '176', '177', '179', '181', '182', '183', '184', '185', '186', '188', '192', '193', '194', '195',
+    '196', '197', '199', '204', '205', '206', '207', '208', '209', '213'
+  )
+  and r.imagen_url is distinct from ('/recetas/receta-' || right(r.id::text, 3) || '.webp');
 
 commit;

@@ -16,7 +16,7 @@ Correr los archivos en este orden (cada migración asume las anteriores):
 | 4 | `migrations/0004_categoria.sql` | Columna `recetas.categoria` (`salado`/`dulce`) |
 | 5 | `migrations/0005_principal.sql` | Columna `receta_ingredientes.es_principal` (protagonista del plato) |
 | 6 | `migrations/0006_alergenos_huevo_pescado.sql` | Etiquetas y filtros Sin Huevo / Sin Pescado |
-| 7 | `seed.sql` | Catálogo: 68 ingredientes + 100 recetas |
+| 7 | `seed.sql` | Catálogo: 92 ingredientes + 113 recetas |
 
 Desde el dashboard de Supabase: pegar cada archivo en el SQL Editor, en
 ese orden. Con CLI: `supabase db push` (migraciones) y luego ejecutar
@@ -30,6 +30,10 @@ sin duplicar filas ni dejar el catálogo a medias.
 > completa los IDs de los reemplazos y los protagonistas (`es_principal`), y
 > recalcula las etiquetas Sin Huevo / Sin Pescado. El seed debe ejecutarse
 > después de `0006` porque usa `categoria`, `es_principal` y los reemplazos.
+>
+> **Ingredientes y recetas nuevos (Fase 4):** no requieren migraciones. Volvé a
+> correr `seed.sql` y agrega los 24 ingredientes cotidianos y las 13 recetas que
+> los usan, sin tocar lo existente.
 
 ## Convenciones
 
@@ -79,7 +83,7 @@ select
   (select count(*) from receta_ingredientes) as relaciones;
 ```
 
-Reemplazos verificables (debe devolver 72 filas tras el seed):
+Reemplazos verificables (debe devolver 74 filas tras el seed):
 
 ```sql
 select count(*) as reemplazos_vinculados

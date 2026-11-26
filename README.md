@@ -12,6 +12,7 @@ Una aplicación web práctica, rápida y pensada para resolver la comida diaria 
 * 🛡️ **Filtros de dietas y alérgenos:** (*Vegetariano*, *Vegano*, *Sin TACC*, *Sin Lactosa*, *Sin Huevo*, *Sin Frutos Secos*, *Sin Pescado*). La exclusión se verifica por las etiquetas de la receta y los alérgenos declarados en sus ingredientes; para alergias, revisá también envases y posibles trazas.
 * 🔄 **Matching con Reemplazos Inteligentes:** Si una receta pide queso rallado pero tenés queso cremoso (o atún en lugar de pollo), el motor lo detecta y te muestra la receta como lista para cocinar.
 * ⏱️ **Modo Cocina con Cronómetros Reales:** Timers por paso basados en hora absoluta (`Date.now()`), por lo que **no se atrasan ni se pausan** si la pantalla se bloquea o la pestaña queda de fondo. Incluye alertas sonoras con Web Audio API y Screen Wake Lock.
+* 🧭 **Modo Guiado Paso por Paso:** Tocá *Iniciar receta* y se muestra un paso por vez; al completar uno, pasás al siguiente. Retoma donde quedaste.
 * ⚖️ **Escalado Dinámico de Porciones:** Ajustá las porciones deseadas (1, 2, 4 o más) y las cantidades de ingredientes y macros orientativos se recalculan automáticamente.
 * 🛒 **Lista de Compras Integrada:** ¿Te falta un ingrediente? Podés copiar la lista organizada por góndola (verdulería, carnicería, lácteos) o enviártela a tu WhatsApp con un solo clic.
 * 🚫 **Sin Bloqueos ni Pantallas Vacías:** Si tu combinación de ingredientes no tiene coincidencia exacta, el motor sugiere alternativas cercanas (*"Si comprás X sumás N recetas"* o *"Quitar límite de tiempo"*).
@@ -53,7 +54,7 @@ npm install
    4. `0004_categoria.sql` — Clasificación por perfil de sabor (`salado` / `dulce`).
    5. `0005_principal.sql` — Ingrediente protagonista de cada receta (`es_principal`), que pesa más en el ranking.
    6. `0006_alergenos_huevo_pescado.sql` — Amplía las etiquetas y normaliza los filtros Sin Huevo / Sin Pescado.
-3. Ejecutá `supabase/seed.sql` para cargar el catálogo inicial de recetas e ingredientes (68 ingredientes y 100 recetas).
+3. Ejecutá `supabase/seed.sql` para cargar el catálogo inicial de recetas e ingredientes (92 ingredientes y 113 recetas).
 4. Creá tu archivo `.env.local` a partir de `.env.example`:
    ```bash
    cp .env.example .env.local

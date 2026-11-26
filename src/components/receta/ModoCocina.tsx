@@ -22,10 +22,14 @@ import { BotonFavorito } from "@/components/BotonFavorito";
 import { PlaceholderImagen } from "@/components/PlaceholderImagen";
 import { FeedbackReceta } from "@/components/receta/FeedbackReceta";
 import { DisclaimerNutricional } from "@/components/Disclaimer";
+import { ModoGuiado } from "@/components/receta/ModoGuiado";
+import { creditoDeFoto } from "@/lib/creditos-fotos";
+import { primerPasoPendiente } from "@/lib/guiado";
 import {
   IconoCheck,
   IconoChispa,
   IconoFlechaIzquierda,
+  IconoPlay,
   IconoReloj,
 } from "@/components/iconos";
 
@@ -41,6 +45,9 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
   const [porciones, setPorciones] = useState(receta.porciones_base);
   const [hechoIngredientes, setHechoIngredientes] = useState<Set<string>>(new Set());
   const [hechoPasos, setHechoPasos] = useState<Set<number>>(new Set());
+  const credito = creditoDeFoto(receta.id);
+  const [guiadoActivo, setGuiadoActivo] = useState(false);
+  const [indiceGuiado, setIndiceGuiado] = useState(0);
 
   const factor = factorPorciones(receta.porciones_base, porciones);
   const macrosTotales = useMemo(
@@ -68,6 +75,26 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
 
   const pasos = [...receta.pasos].sort((a, b) => a.orden - b.orden);
   const progresoPasos = pasos.length > 0 ? Math.round((hechoPasos.size / pasos.length) * 100) : 0;
+  const pendienteGuiado = primerPasoPendiente(pasos, hechoPasos);
+  const recetaTerminada = pendienteGuiado >= pasos.length;
+  const retomando = pendienteGuiado > 0 && !recetaTerminada;
+
+  function iniciarGuiado() {
+    if (recetaTerminada) setHechoPasos(new Set());
+    setIndiceGuiado(recetaTerminada ? 0 : pendienteGuiado);
+    setGuiadoActivo(true);
+  }
+
+  function completarPasoGuiado() {
+    const paso = pasos[indiceGuiado];
+    if (paso) setHechoPasos((prev) => new Set(prev).add(paso.orden));
+    setIndiceGuiado((i) => i + 1);
+  }
+
+  function reiniciarGuiado() {
+    setHechoPasos(new Set());
+    setIndiceGuiado(0);
+  }
 
   return (
     <main className="mx-auto w-full max-w-2xl flex-1 px-4 pb-24 pt-8">
@@ -123,6 +150,20 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
           <IconoCheck className="h-4 w-4" />
           {yaCocinada ? "Cocinada · quitar del historial" : "La cociné"}
         </button>
+        {receta.imagen_url && credito && (
+          <p className="mt-3 text-xs text-humo">
+            Foto: {credito.autor} ·{" "}
+            <a
+              href={credito.pagina}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline hover:text-verde"
+            >
+              Wikimedia Commons
+            </a>{" "}
+            · {credito.licencia}
+          </p>
+        )}
       </header>
 
       {/* ── Ajustador de porciones ─────────────────────────────────────── */}
@@ -157,6 +198,39 @@ export function ModoCocina({ receta }: { receta: RecetaConIngredientes }) {
           </button>
         </div>
       </section>
+
+      {/* ── Modo guiado ────────────────────────────────────────────────── */}
+      {pasos.length > 0 && (
+        <section className="mb-6">
+          {guiadoActivo ? (
+            <ModoGuiado
+              titulo={receta.titulo}
+              pasos={pasos}
+              indice={indiceGuiado}
+              onAnterior={() => setIndiceGuiado((i) => Math.max(0, i - 1))}
+              onCompletar={completarPasoGuiado}
+              onReiniciar={reiniciarGuiado}
+              onSalir={() => setGuiadoActivo(false)}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={iniciarGuiado}
+              className="flex w-full items-center justify-between gap-4 rounded-xl bg-verde px-5 py-4 text-left text-sobre-acento transition-opacity hover:opacity-90"
+            >
+              <span className="min-w-0">
+                <span className="block font-display text-xl font-semibold">
+                  {retomando ? `Seguir desde el paso ${pendienteGuiado + 1}` : "Iniciar receta"}
+                </span>
+                <span className="mt-0.5 block text-xs opacity-90">
+                  Un paso por vez: cuando terminás uno, pasás al siguiente.
+                </span>
+              </span>
+              <IconoPlay className="h-7 w-7 shrink-0" />
+            </button>
+          )}
+        </section>
+      )}
 
       {/* ── Ingredientes ───────────────────────────────────────────────── */}
       <section className="mb-6">
